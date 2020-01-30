@@ -1,0 +1,444 @@
+\documentclass{article}
+
+\usepackage{Sweave}
+\begin{document}
+\input{code_and_results_to_include_as_latex_in_paper-concordance}
+
+%code_and_results_to_include_in_latex_paper
+\begin{Schunk}
+\begin{Sinput}
+> library(Brec)
+> library(plotly)
+> library(ggplot2)
+> library(reshape2)
+> library(shiny)
+> library(na.tools)
+> library(tidyverse)
+> library(xtable)
+> plots_path =  paste0(getwd(),"/../DQC/")
+> ## === Read data and build whole chromosomes from arms
+> 
+> # load inputs data
+> # inputData = read.csv(file = "data/Dmel_R6_formatted_v2.csv", header = T, sep = "\t")
+> inputData = read.csv(file = "../data/BREC_byArm_MB_marey_map_R5.36_removeOutliers.csv", header = T, sep = "\t")
+> chrList = get_list_of_chromosomes(inputData)
+> newChrList = c("X", "2L", "2R", "3L", "3R")
+\end{Sinput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+> options(xtable.floating = FALSE)
+> options(xtable.timestamp = "")
+> xtab <- xtable(head(inputData))
+> print(xtab)
+\end{Sinput}
+\begin{Soutput}
+% latex table generated in R 3.5.2 by xtable 1.8-4 package
+% 
+\begin{tabular}{rllrr}
+  \hline
+ & mkr & chr & cm & mb \\ 
+  \hline
+1 & l(2)gl & 2L & 0.00 & 0.02 \\ 
+  2 & net & 2L & 0.00 & 0.08 \\ 
+  3 & Sam-S & 2L & 0.00 & 0.11 \\ 
+  4 & Gs1 & 2L & 0.05 & 0.13 \\ 
+  5 & kis & 2L & 0.00 & 0.23 \\ 
+  6 & smo & 2L & 0.40 & 0.28 \\ 
+   \hline
+\end{tabular}
+\end{Soutput}
+\end{Schunk}
+
+\section{Validation}
+
+\subsection{Chromatin boundaries validation table}
+
+\begin{Schunk}
+\begin{Sinput}
+> cyto_ref_hcb = data.frame()
+> hcb_validation_df = data.frame()
+> 
+> 
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Chromatin boundaries validation plot(ly)s}
+\begin{Schunk}
+\begin{Sinput}
+> 
+\end{Sinput}
+\end{Schunk}
+
+
+\subsection{Chromatin boundaries validation shift ggplot}
+\begin{Schunk}
+\begin{Sinput}
+> 
+> 
+\end{Sinput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+> 
+\end{Sinput}
+\end{Schunk}
+
+\section{Validation of recombination rates with the high resolution map from FlyBase}
+
+\begin{Schunk}
+\begin{Sinput}
+> # Load and prepare Langley data (with plotting the content)
+> langleyData <- read.csv(file = "../datasets/Langley_TableS12.txt", skip= 3, sep="\t", header=TRUE)
+>     print(head(langleyData))
+\end{Sinput}
+\begin{Soutput}
+  Cytogenetic  cM     end      M.bp  X Cytogenetic.1 cM.1   end.1   M.bp.1 X.1
+1          1A 0.0  302615 -2.19e-09 NA           21A  0.0   22221 8.37e-09  NA
+2          1B 0.0  554516 -1.29e-09 NA           21B  0.5  324485 1.49e-08  NA
+3          1C 0.0  725129  5.04e-10 NA           21C  0.7  464653 1.88e-08  NA
+4          1D 0.0  885080  2.03e-09 NA           21D  1.0  518418 2.04e-08  NA
+5          1E 0.1 1148842  4.22e-09 NA           21E  1.5 1086654 2.58e-08  NA
+6          1F 0.1 1262585  6.27e-09 NA           21F  2.0 1326937 3.21e-08  NA
+  Cytogenetic.2 cM.2   end.2    M.bp.2 X.2 Cytogenetic.3 cM.3   end.3   M.bp.3
+1           41A   55  469718  3.61e-10  NA           61A -1.0  114102 2.41e-09
+2           41B   55  592171 -1.34e-11  NA           61B -1.0  298520 2.63e-09
+3           41C   55  890835 -1.91e-10  NA           61C -0.5  756302 2.53e-09
+4           41D   55 1034083 -3.34e-10  NA           61D -0.5  924623 3.90e-09
+5           41E   55 1293315 -4.65e-10  NA           61E -0.5 1082762 5.17e-09
+6           41F   55 1690404 -6.04e-10  NA           61F  0.0 1393741 7.75e-09
+  X.3 Cytogenetic.4 cM.4   end.4   M.bp.4
+1  NA           82A 47.1  236357 1.41e-10
+2  NA           82B 47.1  326924 4.46e-10
+3  NA           82C 47.1  482821 8.33e-10
+4  NA           82D 47.1  689062 1.31e-09
+5  NA           82E 47.1  926850 1.68e-09
+6  NA           82F 47.5 1189877 1.90e-09
+\end{Soutput}
+\begin{Sinput}
+>     langleyData_X = langleyData[ , c(1:4)]
+>     langleyData_2L = langleyData[ , c(6:9)]
+>     langleyData_2R = langleyData[ , c(11:14)]
+>     langleyData_3L = langleyData[ , c(16:19)]
+>     langleyData_3R = langleyData[ , c(21:24)]
+>     newChrList = c("X", "2L", "2R", "3L", "3R")
+>     for (chrID in newChrList) {
++ 
++         # chrID = "3R"
++         if(chrID == "X"){
++             langleyData = langleyData_X
++         }else if(chrID == "2L"){
++             langleyData = langleyData_2L
++         }else if(chrID == "2R"){
++             langleyData = langleyData_2R
++         }else if(chrID == "3L"){
++             langleyData = langleyData_3L
++         }else if(chrID == "3R"){
++             langleyData = langleyData_3R
++         }
++ 
++         names(langleyData)[c(1:4)] = c("Cytogenetic", "cM", "end", "M.bp")
++ 
++         # ------------------plotting with ggplot ==> second y axis issues ==> solved with plotly -------------
++         # p = ggplot(langleyData, aes(x = end/10^6)) + geom_point(aes( y = cM, color = "Genetic markers"))
++         #
++         # # adding regression line
++         # p = p + geom_line(aes(y = M.bp*10^9, color = "Recombination rate"))
++         #
++         # # now adding the secondary axis, following the example in the help file ?scale_y_continuous
++         # # and, very important, reverting the above transformation
++         # ymin = min(langleyData$cM, langleyData$M.bp*10^9, na.rm = T)
++         # ymax = max(langleyData$cM, langleyData$M.bp*10^9, na.rm = T)
++         # p = p + scale_y_continuous(sec.axis = sec_axis(~./10 , name = "Recombination rate (cM/Mb)"))#, limits = c(-1, 8))
++         #
++         # # modifying colours and theme options
++         # p = p + scale_colour_manual(values = c("black", "red"))
++         # p = p + labs(y = "Genetic distance (cM)",
++         #               x = "Physical location (Mb)",
++         #               colour = paste(chrID, " - Langley data"))
++         # p = p + theme(legend.position = c(0.2, 0.9))
++         # print(p)
++         # ggsave(filename = paste0("chr_",chrID,"_Langley_", ".png") #
++         #        , plot = p
++         #        , path = plots_path #plot = last_plot()
++         #        , height = 8
++         #        , width = 12
++         # )
++ 
++         # ------------------plotting with plotly ----------------------------------------------------------------
++ 
++          pLangley = plot_ly(data = langleyData, x = ~end/10^6, y= ~cM,
++                   type = 'scatter', mode = 'markers',
++                   yaxis = "y", name = "genetic markers"
++                   # hoverinfo = text,
++                   # text = ~paste('Mb:', x, "\ncM:",y)
++                   ) %>%  # plot dataSet
++             add_trace(data = langleyData, x= ~end/10^6, y = ~M.bp*10^8,  #polynomial
++                       type = "scatter", mode = "lines",
++                       yaxis = "y2", name = "RR estimates",
++                       line = list(color = "red"))  %>%
++ 
++              layout(title = paste("Chromosome", chrID),
++                    xaxis = list(
++                      showline = TRUE
++                      ,title = paste( "Physical location (Mb)" )
++                      ,titlefont = list(size= 20)
++                      ,color = "#0072B2"
++                      ,zeroline = FALSE
++                      ,showgrid = FALSE
++                      ,exponentformat = "power"
++                      ,tickwidth = 3
++                      ,tickcolor = "#0072B2"
++                      ,showticklabels = TRUE
++                      ,tickfont = list(size = 18)
++                    )
++                    ,yaxis = list(  # the data points axis is invisible since it matches the one of the polynomial
++                        showline = TRUE
++                        ,side = "left"
++                        ,title = "Genetic location (cM)"
++                        ,titlefont = list(size= 20)
++                        ,color = "#0072B2"
++                        ,zeroline = FALSE
++                        ,showgrid = FALSE
++                        ,exponenformat = "power"
++                        ,tickwidth = 3
++                        ,tickcolor = "#0072B2"
++                        ,showticklabels = TRUE
++                        ,tickfont = list(size = 18)
++                    )
++                    ,yaxis2 = list(
++                        showline = TRUE
++                      ,side = "right"
++                      ,overlaying = "y"
++                      ,title = "Recombination rate (cM/Mb)"
++                      ,titlefont = list(size= 20)
++                      ,color = "red" #2CA02C"
++                      ,zeroline = FALSE
++                      ,anchor = "y"
++                      ,showgrid = FALSE
++                      ,exponentformat = "power"
++                      ,tickwidth = 3
++                      ,showticklabels = TRUE
++                      ,tickfont = list(size = 18)
++                    )
++          )
++          print(pLangley)
++ 
++ 
++     }
+\end{Sinput}
+\end{Schunk}
+
+\section{Comparison of regression models for RR estimates}
+
+\paragraphe{Caption}Comparison of multiple regression models for recombination rate estimates with the high resolution recombination map from FlyBase, along \textit{D. melanogaster} R5 chromosomes. Shown here are third degree polynomial and Loess with span values of 15\%, 25\%, 0.5\% and 0.75\%.
+
+\begin{Schunk}
+\begin{Sinput}
+> 
+\end{Sinput}
+\end{Schunk}
+
+\section{DQC}
+\subsection{Density}
+
+\begin{Schunk}
+\begin{Sinput}
+> densityList= list()
+> for (chrID in chrList[-c(1,2)]) {
++ 
++     ## R5_assign ref cyto boundaries according to chr in process
++     if(chrID == "2L"){
++         c = 19.954780
++         t = 0.698949
++     }else if(chrID == "2R"){
++         c = 6.090470
++         t = 20.020890
++     }else if(chrID == "3L"){
++         c = 18.408033
++         t = 0.356604
++     }else if(chrID == "3R"){
++         c = 8.349278
++         t = 27.248244
++     }else if(chrID == "X"){
++         c =  20.665672
++         t =  2.460008
++     }
++     print(c("=========== chr in process ====> ", chrID, "==================="))
++     refChromosome = get_chromosome_from_inputData(inputData, chrID)
++     print(c("refChromosomeSize",nrow(refChromosome)))
++     # cleaning step
++     refChromosome = clean_chromosome_data(refChromosome, genomeName = "DmelR6", chrID) #=> chr2 : 240 instead of 267
++     refChromosomeSize = nrow(refChromosome)
++     print(c("refChromosome after cleaning --> size = ", refChromosomeSize))
++ 
++     #prepare refchr for DQC
++     # refChromosomeAsMatrix = as.matrix.data.frame(subset(refChromosome, select=c("cm", "mb")), rownames.force = NA)
++ 
++     # print(c("frac = ", frac, "n = ", nrow(testChromosome)))
++     # ------------- simu1List : number of markers per chromosome ---------------------------------
++     # enoughData = FALSE
++     # simu1List = list()  # simulated chromosomes baesd on number of markers
++     # simu1ListOfPvals = c()
++ 
++   tictoc::tic()
++ 
++     testChromosome = refChromosome
++     # decacl = c() # centro_left decalage_of_Brec_estimated_HCB_compared_To_ref_cyto_HCB
++     # decacr = c() # centro_right
++     # decatl = c() # telo_left
++     # decatr = c() # telo_right
++ 
++     deca_c = c() # centro decalage_of_Brec_estimated_HCB_compared_To_ref_cyto_HCB
++     deca_t = c() # telo
++ 
++     mkrDensity = c()
++     densityFD = data.frame()
++ 
++     testSizes = seq(1, 0.30, by = -0.05) # simulation fractions vector
++ 
++     for(frac in testSizes) {#testSizes each 5%
++         # hcb_cl = c()
++         # hcb_cr = c()
++         # hcb_tl = c()
++         # hcb_tr = c()
++ 
++         hcb_c = c()
++         hcb_t = c()
++ 
++         if (frac != 1) { ## not the case of 100%
++             for (i in c(1:30)) {
++                 print(c("Test for : frac =", frac," No ", i, "  ---------------------------------"))
++                 testChromosome = dplyr::sample_frac(refChromosome, frac)
++                 testChromosome = testChromosome[order(testChromosome$mb),]  #sort by ascendaing mb which is always true (logically)
++ 
++                 # simu1List = rlist::list.append(simu1List, testChromosome)
++                 # chi2 = chisq.test(refChromosomeAsMatrix, p = testChromosome, simulate.p.value = TRUE, rescale.p = TRUE) # to rescale p to sum up to 1
++                 # simu1ListOfPvals = c(simu1ListOfPvals, chi2$p.value)
++ 
++                 gg1 = ggplot(data = testChromosome, mapping = aes(x=mb, y=cm)) + geom_point()
++                 ggsave(filename = paste0("chr_",chrID, "_SimuChr-NbrMrks=", frac*100, "percent_testNo_",i,".png"), plot = gg1, path = plots_path) #plot = last_plot()
++ 
++                 # run BREC to get new HCB
++                 RR_object = estimate_recombination_rates_loess(testChromosome, spanVal = 0.15)
++                 print("RR done")
++ 
++                 minRR_object = get_min_RR_value_based_on_polynomial(testChromosome)
++                 print(" get minRR done !")
++                 print(minRR_object)
++ 
++                 chrType_object = get_chromosome_type(testChromosome, chrID, minRR_object, RR_object)
++                 chrType = chrType_object$chr_type
++                 print(chrType_object)
++ 
++                 R2DataFrame2D = compute_cumulated_R_squared_2directions(testChromosome)
++                 print("R2 done")
++ 
++                 # if(using_slidingWindowApproach_for_HCB) {
++                 print("Extracting CB for this chromosome ...")
++                 heteroChromatinBoundaries = extract_CB(testChromosome, RR_object, R2DataFrame2D, chrID, chrType, minRR_object)
++                 print("extract centroCB done")
++                 telomeres_boundaries = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
++                 print("extract telo CB done")
++                 RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
++                 print("extrapolation done")
++ 
++             #     hcb_cl = c(hcb_cl, heteroChromatinBoundaries$heteroBoundLeft)
++             #     hcb_cr = c(hcb_cr, heteroChromatinBoundaries$heteroBoundRight)
++             #     hcb_tl = c(hcb_tl, telomeres_boundaries$extrapolPhysPos_left)
++             #     hcb_tr = c(hcb_tr, telomeres_boundaries$extrapolPhysPos_right)
++ 
++                 hcb_c = c(hcb_c, heteroChromatinBoundaries$heteroBoundArm)
++                 hcb_t = c(hcb_t, telomeres_boundaries$telo_arm)
++             }
++ 
++         }else{ ## case of  100% --> run only once not 30 times since it's the same
++             print("Test for : original_cleaned_chromosome ---------------------------------")
++             # simu1List = rlist::list.append(simu1List, testChromosome)
++             # chi2 = chisq.test(refChromosomeAsMatrix, p = testChromosome, simulate.p.value = TRUE, rescale.p = TRUE) # to rescale p to sum up to 1
++             # simu1ListOfPvals = c(simu1ListOfPvals, chi2$p.value)
++ 
++             gg2 = ggplot(data = testChromosome, mapping = aes(x=mb, y=cm)) + geom_point()
++             ggsave(filename = paste0("chr_",chrID, "_SimuChr-NbrMrks=", frac*100, "percent_original_cleaned_chromosome.png"), plot = gg2, path = plots_path)
++ 
++             # run BREC to get new HCB
++             RR_object = estimate_recombination_rates(testChromosome)
++             print("RR done")
++ 
++             RR_object = estimate_recombination_rates_loess(testChromosome, spanVal = 0.15)
++             print("RR done")
++ 
++             minRR_object = get_min_RR_value_based_on_polynomial(testChromosome)
++             print(" get minRR done !")
++             print(minRR_object)
++ 
++             chrType_object = get_chromosome_type(testChromosome, chrID, minRR_object, RR_object)
++             chrType = chrType_object$chr_type
++             print(chrType_object)
++ 
++             R2DataFrame2D = compute_cumulated_R_squared_2directions(testChromosome)
++             print("R2 done")
++ 
++             # if(using_slidingWindowApproach_for_HCB) {
++             print("Extracting CB for this chromosome ...")
++             heteroChromatinBoundaries = extract_CB(testChromosome, RR_object, R2DataFrame2D, chrID, chrType, minRR_object)
++             print("extract centroCB done")
++             telomeres_boundaries = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
++             print("extract telo CB done")
++             RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
++             print("extrapolation done")
++ 
++             # hcb_cl = c(hcb_cl, heteroChromatinBoundaries$heteroBoundLeft)
++             # hcb_cr = c(hcb_cr, heteroChromatinBoundaries$heteroBoundRight)
++             # hcb_tl = c(hcb_tl, telomeres_boundaries$extrapolPhysPos_left)
++             # hcb_tr = c(hcb_tr, telomeres_boundaries$extrapolPhysPos_right)
++ 
++             hcb_c = c(hcb_c, heteroChromatinBoundaries$heteroBoundArm)
++             hcb_t = c(hcb_t, telomeres_boundaries$telo_arm)
++ 
++             RR_plot_100pc = plot_all(testChromosome, RR_object, genomeName ="DmelR6_DQC1_SimuDmelR6Chr2_100pc", toString(chrID), R2DataFrame2D, heteroChromatinBoundaries, heteroChromatinBoundaries$swSize, telomeres_boundaries, plots_path, chrType)
++ 
++             # save_plot_as_png(RR_plot_100pc, plots_path, genomeName = "DmelR6", chrID)
++             print(RR_plot_100pc)
++         }
++ 
++         print(c("frac = ", frac, "n = ", nrow(testChromosome)))
++         mkrDensity = c(mkrDensity, nrow(testChromosome))
++ 
++         # mhcb_cl = mean(abs(cl - hcb_cl))
++         # mhcb_cr = mean(abs(cr - hcb_cr))
++         # mhcb_tl = mean(abs(tl - hcb_tl))
++         # mhcb_tr = mean(abs(tr - hcb_tr))
++         #
++         # decacl = c(decacl, mhcb_cl)
++         # decacr = c(decacr, mhcb_cr)
++         # decatl = c(decatl, mhcb_tl)
++         # decatr = c(decatr, mhcb_tr)
++ 
++         mhcb_c = mean(abs(c - hcb_c))
++         mhcb_t = mean(abs(t - hcb_t))
++ 
++         deca_c = c(deca_c, mhcb_c)
++         deca_t = c(deca_t, mhcb_t)
++ 
++     }
++ 
++     mkrDensity
++     densityList = rlist::list.append(densityList, mkrDensity )
++ 
++     fractions = testSizes*100  #[1:10]
++     # res = data.frame(fractions, telo_left = decatl, centro_left = decacl, centro_right = decacr, telo_right = decatr)
++     res = data.frame(fractions, telo = deca_t, centro = deca_c)
++     d <- melt(res, id="fractions")
++ 
++     gg3 = ggplot(d, aes(x=fractions, y = value, color=variable)) +
++         geom_line(aes(linetype=variable), size=1) +
++         geom_point(aes(shape=variable, size=4)) +
++         scale_linetype_manual(values = c(2,1,1,2)) +
++         scale_shape_manual(values= c(15,17,17,15))
++     ggsave(filename = paste0("chr_",chrID,  "_SimuResuts_1.png"), plot = gg3, path = plots_path)
++ 
++ tictoc::toc()
++ }
