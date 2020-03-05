@@ -21,7 +21,7 @@
 # @param physicalMapUnit the measurement unit used for the physical map in the input data file. Default value is megabase pair "Mb". Options: basepair "bp".
 
 
-Brec_chromosome <- function(genomeName="genome name", inputData, inputChrID, spanFromGui){
+Brec_chromosome <- function(genomeName="genome name", chromosome, inputChrID, spanFromGui){#inputData
 
   options(encoding = "UTF-8")
   # install_needed_pkgs()
@@ -34,49 +34,52 @@ Brec_chromosome <- function(genomeName="genome name", inputData, inputChrID, spa
   # genomeName = get_genome_full_name(inputGenomeName)
   # inputData = load_input_data(genomeName,  separator, physicalMapUnit) # return listOfChromosomes
 
-  chrList = get_list_of_chromosomes(inputData)
-  chrID = str_to_upper(inputChrID)
+  # chrList = get_list_of_chromosomes(inputData)
+  # chrID = str_to_upper(inputChrID)
 
   # inputData = transform_inputData_to_chromosomes(inputData, chrList)
   # chrList = get_list_of_chromosomes(inputData)
 
-  chromosome = get_chromosome_from_inputData(inputData, chrID)
+  # chromosome = get_chromosome_from_inputData(inputData, chrID) #--> moved into the gui
+  chrID = inputChrID
   cat("\n**/**/**/**/**", "chrId : " , chrID ," --- length of this chr : ", nrow(chromosome),"**/**/**/**/**")
 
-  # **** handling data quality issues *******************************************************
-    goodDataQuality = data_quality_test(chromosome)
+  # chromosome = data_quality_control_module(genomeName, chromosome, inputChrID)
 
-    if (goodDataQuality) { # good data quality 1st iteration
-      cat("\n Your data quality is : Good ! ")
-      do_5_perCent_cleaning = ask_user_about_data_cleaning_5_perCent()
-      if(do_5_perCent_cleaning){
-        cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
-        chromosome = cleanedChromosome_5_perCent
-      }
-    }else{ # low data quality 1st iteration
-      print("Your data quality is : Not good enough !!!")
-      do_cleaning = ask_user_about_data_cleaning()
-      if(do_cleaning){
-        cleanedChromosome = clean_chromosome_data(chromosome, genomeName, chrID)
-        chromosome = cleanedChromosome
-        goodDataQuality = data_quality_test(chromosome)
-        if (goodDataQuality) {  # good data quality 2nd iteration
-          print("Your data quality became : Good !")
-        }else{  # low data quality 2nd iteration
-          print("Your data quality is still : Not good enough !!!")
-          do_5_perCent_cleaning = ask_user_about_data_cleaning_5_perCent()
-          if(do_5_perCent_cleaning){
-            cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
-            chromosome = cleanedChromosome_5_perCent
-            goodDataQuality = data_quality_test(chromosome)
-          }
-        }
-      }
-      if(!goodDataQuality){
-          using_slidingWindowApproach_for_HCB = FALSE
-      }
-    }
-  # ******************************************************************************************
+  # # **** handling data quality issues ******** transfered to data_quality_control_module() ********************************
+  #   goodDataQuality = data_quality_test(chromosome)
+  #
+  #   if (goodDataQuality) { # good data quality 1st iteration
+  #     cat("\n Your data quality is : Good ! ")
+  #     do_5_perCent_cleaning = ask_user_about_data_cleaning_5_perCent()
+  #     if(do_5_perCent_cleaning){
+  #       cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
+  #       chromosome = cleanedChromosome_5_perCent
+  #     }
+  #   }else{ # low data quality 1st iteration
+  #     print("Your data quality is : Not good enough !!!")
+  #     do_cleaning = ask_user_about_data_cleaning()
+  #     if(do_cleaning){
+  #       cleanedChromosome = clean_chromosome_data(chromosome, genomeName, chrID)
+  #       chromosome = cleanedChromosome
+  #       goodDataQuality = data_quality_test(chromosome)
+  #       if (goodDataQuality) {  # good data quality 2nd iteration
+  #         print("Your data quality became : Good !")
+  #       }else{  # low data quality 2nd iteration
+  #         print("Your data quality is still : Not good enough !!!")
+  #         do_5_perCent_cleaning = ask_user_about_data_cleaning_5_perCent()
+  #         if(do_5_perCent_cleaning){
+  #           cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
+  #           chromosome = cleanedChromosome_5_perCent
+  #           goodDataQuality = data_quality_test(chromosome)
+  #         }
+  #       }
+  #     }
+  #     if(!goodDataQuality){
+  #         using_slidingWindowApproach_for_HCB = FALSE
+  #     }
+  #   }
+  # # ******************************************************************************************
 
   cat("\n new chr size : " , nrow(chromosome), "\n")
   #**** end of handling data quality issues *************

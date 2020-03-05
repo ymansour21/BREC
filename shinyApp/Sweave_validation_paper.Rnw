@@ -19,21 +19,42 @@ library(ggpubr)
 library(patchwork)
 library(grid)
 
-plots_path =  paste0(getwd(),"/DQC/new/")
-print(plots_path)
-print(paste0(getwd(),"/data/BREC_byArm_MB_marey_map_R5.36_removeOutliers.csv"))
+plots_path =  paste0(getwd(),"/../DQC/new/")
 ## === Read data and build whole chromosomes from arms
 
 # load inputs data
 # inputData = read.csv(file = "data/Dmel_R6_formatted_v2.csv", header = T, sep = "\t")
-inputData = read.csv(file = paste0(getwd(),"/data/BREC_byArm_MB_marey_map_R5.36_removeOutliers.csv"), header = T, sep = "\t")
+inputData = read.csv(file = paste0(getwd(), "/../data/BREC_byArm_MB_marey_map_R5.36_removeOutliers.csv"), header = T, sep = "\t")
 chrList = get_list_of_chromosomes(inputData)
 newChrList = c("X", "2L", "2R", "3L", "3R")
+
+#  --- display all chromosome features for paper-----
+whole_genome_size_vect = c()
+whole_genome_markers_density_vect = c()
+genetic_map_length_vect = c()
+for (chrID in newChrList){
+    refChromosome = get_chromosome_from_inputData(inputData, chrID)
+    chrSize = refChromosome$mb[nrow(refChromosome)] - refChromosome$mb[1]
+    genetic_map_length = refChromosome$cm[nrow(refChromosome)] - refChromosome$cm[1]
+    genetic_map_length_vect = c(genetic_map_length_vect, genetic_map_length)
+    chr_markers_density = nrow(refChromosome)/chrSize
+    print(c(chrID, "size", chrSize ,"markers nbr" ,nrow(refChromosome), "markers density" , round(chr_markers_density, 3) ))
+    whole_genome_size_vect = c(whole_genome_size_vect,  chrSize)
+    whole_genome_markers_density_vect = c(whole_genome_markers_density_vect, chr_markers_density)
+}
+whole_genome_markers_number = nrow(inputData)
+whole_genome_markers_number
+whole_genome_markers_density = round(mean(whole_genome_markers_density_vect), 2)
+whole_genome_markers_density
+whole_genome_size = round(sum(whole_genome_size_vect), 2)
+whole_genome_genetic_map_length = round(sum(genetic_map_length_vect), 2)
+genetic_map_length_vect
+whole_genome_genetic_map_length
 @
 
 
 \section{Input data format}
-<<echo=F, results=tex>>=
+<<echo=F>>=
 options(xtable.floating = FALSE)
 options(xtable.timestamp = "")
 
@@ -44,7 +65,7 @@ print(xtab) #, latex.environments = "center"
 \section{Validation}
 
 \subsection{Chromatin boundaries validation table with min and max shift for each category : centromeric nad telomeric}
-<<echo=F, results=tex>>=
+<<echo=F>>=
 
 ## R5 ref cyto boundaries
 options(xtable.floating = FALSE)
@@ -94,6 +115,40 @@ shift_max_centro = max(abs(ref_centro-brec_centro))
 shift_min_telo = min(abs(ref_telo-brec_telo))
 shift_max_telo = max(abs(ref_telo-brec_telo))
 
+# add a row at the end of table with mean and median shift values for each category of boundaries
+shift_centro = round(abs(ref_centro-brec_centro), 2)
+shift_mean_centro = mean(abs(ref_centro-brec_centro))
+shift_median_centro = median(abs(ref_centro-brec_centro))
+
+shift_telo = round(abs(ref_telo-brec_telo), 2)
+shift_mean_telo = mean(abs(ref_telo-brec_telo))
+shift_median_telo = median(abs(ref_telo-brec_telo))
+
+
+# idem as before without 3R values---------------------------------
+# add a row at the end of table with min and max shift values for each category of boundaries
+shift_min_no_3R_centro = min(abs(ref_centro[-5] - brec_centro[-5]))
+shift_max_no_3R_centro = max(abs(ref_centro[-5] - brec_centro[-5]))
+
+shift_min_no_3R_telo = min(abs(ref_telo[-5] - brec_telo[-5]))
+shift_max_no_3R_telo = max(abs(ref_telo[-5] - brec_telo[-5]))
+
+shift_mean_no_3R_3L_centro = mean(abs(ref_centro[-c(4,5)] - brec_centro[-c(4,5)]))
+shift_median_no_3R_centro = median(abs(ref_centro[-5] - brec_centro[-5]))
+
+shift_mean_no_3R_3L_telo = mean(abs(ref_telo[-c(4,5)] - brec_telo[-c(4,5)]))
+shift_median_no_3R_telo = median(abs(ref_telo[-5] - brec_telo[-5]))
+# ---------------
+shift_mean_no_3L_telo = mean(abs(ref_telo[-4] - brec_telo[-4]))
+shift_median_no_3L_telo = median(abs(ref_telo[-4] - brec_telo[-4]))
+
+# ------------------------------ reported in text content paper
+mean(c(shift_mean_no_3R_3L_telo, shift_mean_no_3R_3L_centro)) == mean(c(abs(ref_centro[-c(4,5)]-brec_centro[-c(4,5)]), abs(ref_telo[-c(4,5)]-brec_telo[-c(4,5)])))
+
+mean(c(shift_mean_telo, shift_mean_centro)) == mean(c(abs(ref_centro-brec_centro), abs(ref_telo-brec_telo)))
+
+# -------------------------------
+
 # addtorow <- list()
 # addtorow$pos <- list(6, 0)
 # addtorow$command <- c("&\\multicolumn{2}{c|}{Centromeric boundaries}&\\multicolumn{2}{c|}{Telomeric boundaries}\\\n" )
@@ -105,29 +160,30 @@ print(validation_tab)
 
 @
 
-\subsection{PLOT: Chromatin boundaries validation plots for centromeric nad telomeric on all Dmel R5 arms (corresponding to validation table)}
-<<echo=F, results=tex>>=
-
+\subsection{PLOT: Chromatin boundaries validation plots for centromeric and telomeric on all Dmel R5 arms (corresponding to validation table)}
+# <<echo=F>>=
+# ((((((((((((((((((((((((((((((  main validation figure on 5 arms DmelR5  ))))))))))))))))))))))))))))))
 fig5_gg_all_arms_list = list()
+fig5_gg_all_arms_RR_list = list()
 
 for (chrID in newChrList) {
-  RR_object = NULL
+  # RR_object = NULL
     ## R5_assign ref cyto boundaries according to chr in process
     if(chrID == "2L"){
-        c = 19.954780
-        t = 0.698949
+        ref_c = 19.954780
+        ref_t = 0.698949
     }else if(chrID == "2R"){
-        c = 6.090470
-        t = 20.020890
+        ref_c = 6.090470
+        ref_t = 20.020890
     }else if(chrID == "3L"){
-        c = 18.408033
-        t = 0.356604
+        ref_c = 18.408033
+        ref_t = 0.356604
     }else if(chrID == "3R"){
-        c = 8.349278
-        t = 27.248244
+        ref_c = 8.349278
+        ref_t = 27.248244
     }else if(chrID == "X"){
-        c =  20.665672
-        t =  2.460008
+        ref_c =  20.665672
+        ref_t =  2.460008
     }
     print(c("=========== chr in process ====> ", chrID, "==================="))
     refChromosome = get_chromosome_from_inputData(inputData, chrID)
@@ -148,9 +204,16 @@ for (chrID in newChrList) {
 
     testChromosome = refChromosome
 
-    # run BREC to get new HCB --------------------------------------------------------------------
+    # cleaning step----------------------------------------------------------------
+    testChromosome = clean_chromosome_data(testChromosome, genomeName = "Dmel_R5", chrID) #=> 2L original = 110
+    print(c("refChromosome after cleaning --> size = ", refChromosomeSize))
+
+    sizechr = testChromosome$mb[nrow(testChromosome)]
+
+    # run BREC to get new HCB ------with span 0.15--------------------------------------------------------------
     spanVal = 0.15
     RR_object = estimate_recombination_rates_loess(testChromosome, spanVal)
+    RR_object$regDr[RR_object$regDr<0]=0
     print("RR done")
 
     minRR_object = get_min_RR_value_based_on_polynomial(testChromosome)
@@ -174,9 +237,41 @@ for (chrID in newChrList) {
     RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
     print("extrapolation done")
 
-    # shift values to add as ploot annotation ----------------
-    shift_centro = round(abs(heteroChromatinBoundaries$heteroBoundArm - c), 2)
-    shift_telo = round(abs(telomeres_boundaries$telo_arm - t), 2)
+    # ------------------------------------------------------------------
+    # ------- with span 0.25 only for plotting
+    spanVal_25 = 0.25
+    RR_object_25 = estimate_recombination_rates_loess(testChromosome, spanVal_25)
+    heteroChromatinBoundaries_25 = extract_CB(testChromosome, RR_object_25, R2DataFrame2D, chrID, chrType, minRR_object)
+    telomeres_boundaries_25 = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
+    RR_object_25 = extrapolate_RR_estimates(testChromosome, RR_object_25, heteroChromatinBoundaries_25, telomeres_boundaries_25, chrID, chrType, minRR_object)
+    RR_object_25$regDr[RR_object_25$regDr<0] = 0
+
+     # ------- with span 0.50 only for plotting
+    spanVal_50 = 0.5
+    RR_object_50 = estimate_recombination_rates_loess(testChromosome, spanVal_50)
+    heteroChromatinBoundaries_50 = extract_CB(testChromosome, RR_object_50, R2DataFrame2D, chrID, chrType, minRR_object)
+    telomeres_boundaries_50 = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
+    RR_object_50 = extrapolate_RR_estimates(testChromosome, RR_object_50, heteroChromatinBoundaries_50, telomeres_boundaries_50, chrID, chrType, minRR_object)
+    RR_object_50$regDr[RR_object_50$regDr<0] = 0
+
+     # ------- with span 0.75 only for plotting
+    spanVal_75 = 0.75
+    RR_object_75 = estimate_recombination_rates_loess(testChromosome, spanVal_75)
+    heteroChromatinBoundaries_75 = extract_CB(testChromosome, RR_object_75, R2DataFrame2D, chrID, chrType, minRR_object)
+    telomeres_boundaries_75 = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
+    RR_object_75 = extrapolate_RR_estimates(testChromosome, RR_object_75, heteroChromatinBoundaries_75, telomeres_boundaries_75, chrID, chrType, minRR_object)
+    RR_object_75$regDr[RR_object_75$regDr<0] = 0
+
+     # ------- with 3rd degree polynomial only for plotting
+    RR_object_poly = estimate_recombination_rates_third_degree_polynomial(testChromosome)
+    heteroChromatinBoundaries_poly = extract_CB(testChromosome, RR_object_poly, R2DataFrame2D, chrID, chrType, minRR_object)
+    telomeres_boundaries_poly = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
+    RR_object_poly = extrapolate_RR_estimates(testChromosome, RR_object_poly, heteroChromatinBoundaries_poly, telomeres_boundaries_poly, chrID, chrType, minRR_object)
+    RR_object_poly$regDr[RR_object_poly$regDr<0] = 0
+    # ------------------------------------------------------------------
+    # shift values to add as plot annotation ----------------
+    shift_centro = round(abs(heteroChromatinBoundaries$heteroBoundArm - ref_c), 2)
+    shift_telo = round(abs(telomeres_boundaries$telo_arm - ref_t), 2)
 
     # adjust centromere vs. telomere sides as per chr arm (L or R)
     last_marker_pos = testChromosome$mb[nrow(testChromosome)] # needed for Highlighting HCB on pthe plot
@@ -191,6 +286,22 @@ for (chrID in newChrList) {
 
       yaxisLim0 = 0
       yaxisLim1 = 65
+      annotate_y = 64
+      annotate_x = 5
+
+      x0_arm_centro_ref = min(ref_c, last_marker_pos)
+      x1_arm_centro_ref = max(ref_c, last_marker_pos)
+      x0_arm_telo_ref = min(ref_t, first_marker_pos)
+      x1_arm_telo_ref = max(ref_t, first_marker_pos)
+
+      rect_centro_ymin = 50
+      rect_centro_ymax = 70
+      rect_telo_ymin = -15
+      rect_telo_ymax = 15
+      rect_centro_ref_ymin = 55
+      rect_centro_ref_ymax = 65
+      rect_telo_ref_ymin = -10
+      rect_telo_ref_ymax = 10
 
     }else{
       # -------- telocentric -- right arm
@@ -201,91 +312,315 @@ for (chrID in newChrList) {
 
       yaxisLim0 = 45
       yaxisLim1 = 110
+      annotate_y = 109
+      annotate_x = 7#13
+
+      x0_arm_centro_ref = min(ref_c, first_marker_pos)
+      x1_arm_centro_ref = max(ref_c, first_marker_pos)
+      x0_arm_telo_ref = min(ref_t, last_marker_pos)
+      x1_arm_telo_ref = max(ref_t, last_marker_pos)
+
+      rect_centro_ymin = 45
+      rect_centro_ymax = 65
+      rect_telo_ymin = 115
+      rect_telo_ymax = 100
+      rect_centro_ref_ymin = 50
+      rect_centro_ref_ymax = 60
+      rect_telo_ref_ymin = 110
+      rect_telo_ref_ymax = 105
 
     }
 
-    # plotting ----
-    gg_fig5 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.5, color="black") +#Genetic markers
+    # plotting -- old version with vlines as chromatin boundaries--------------------------------
+    # gg_fig5 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.5, color="black") +#Genetic markers
+    #
+    # geom_vline(xintercept = ref_c, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
+    # # geom_text(mapping=aes(x=c, y=0, label="Reference centromeric"), size=4, angle=90, vjust=-1, hjust=-1) +
+    # geom_vline(xintercept = ref_t, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
+    # # geom_text(mapping=aes(x=t, y=0, label= "Reference telomeric"), size=4, angle=90, vjust=-1, hjust=-1) +
+    # geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundArm, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric" #aes(linetype=variable)+
+    # # geom_text(mapping=aes(x=heteroChromatinBoundaries$heteroBoundArm, y=0, label="BREC centromeric"), size=4, angle=90, vjust=-1, hjust=-3) +
+    # geom_vline(xintercept = telomeres_boundaries$telo_arm, linetype="dashed", size=1 , color="grey40") + #color = "BREC_telomeric")
+    # # geom_text(mapping=aes(x=telomeres_boundaries$telo_arm, y=0, label="BREC telomeric"), size=4, angle=90, vjust=-1, hjust=-3) +
+    # # scale_color_manual(name = "Chromatin boundary", values = c(Reference = "blue", BREC_telomeric= "grey40", BREC_centromeric= "red"))+
+    # labs(x = "Physical distance (Mb)", y = "Genetic distance (cM)", color="Chromatin boundaries")
+    #
+    # highlight_rect_centro <- data.frame(xmin=x0_arm_centro, xmax=x1_arm_centro, ymin=-Inf, ymax=Inf)
+    # gg_fig5 <- gg_fig5 + geom_rect(data=highlight_rect_centro, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+    #           fill="coral1",
+    #           alpha=0.3,
+    #           inherit.aes = FALSE)
+    #
+    # highlight_rect_telo <- data.frame(xmin=x0_arm_telo, xmax=x1_arm_telo, ymin=-Inf, ymax=Inf)
+    # gg_fig5 <- gg_fig5 + geom_rect(data=highlight_rect_telo, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+    #           fill="grey40",
+    #           alpha=0.3,
+    #           inherit.aes = FALSE)
+    #
+    # gg_fig5 <- gg_fig5 + theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold")
+    #           # , legend.box.margin = margin(r = 2, l = 1, unit='cm')
+    #           ,axis.text.x = element_text(size=14), axis.text.y = element_text(size=14))
+    #     # scale_x_continuous(breaks=seq(0,24,2)) +
+    #     # scale_y_continuous(breaks=seq(0,20,2))
+    # # ,"\n", deca_c, "\n", deca_t
+    #
+    # gg_fig5 <-  gg_fig5 + annotate("label", x = annotate_x, y = annotate_y, label = chrID, color = "black", size = 4, fill = "white")+
+    #   annotate("label", x = annotate_x, y = annotate_y, label = paste("\n\n", "shift centro =",shift_centro), color = "red", size = 4, fill = "white") +
+    #   annotate("label", x = annotate_x, y = annotate_y, label = paste("\n\n\n\n", "shift telo = ", shift_telo), color = "black", size = 4, fill = "white")+
+    #   theme_bw()  # Black and white theme
+    #
+    # gg_fig5 <- gg_fig5 + coord_cartesian(ylim = c(yaxisLim0, yaxisLim1))
+    #
+    # gg_fig5_RR <- ggplot(x = testChromosome) +
+    #   geom_line(aes(x = testChromosome$mb, y = RR_object$regDr), size=1, color="springgreen4") + labs(x=NULL, y = "Recombination rate (cM/Mb)") + annotate("label", x=5, y=3.5, label=paste(chrID, "\nspan =", spanVal), size = 3, fill = "white") +  theme_bw()
+    #
+    # # gg_fig5_both <- grid.arrange(gg_fig5_RR, gg_fig5, ncol = 1, heights = c(1, 2))
+    # # ggsave(filename = paste0("span_", spanVal, "_chr_",chrID ,"_fig5.png"), plot = gg_fig5_both, path = plots_path, #device = "pdf",
+    #         # width = 20, height = 30, units = "cm", dpi = 300)
+    #-----------------------------------------------------------------------------------------------------------------------
+    #--------new version with rect as chromatin boundaries----------------------------------------------------------------
+    gg_fig5 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.5, color="black") + geom_rug(alpha = 0.7, sides = "b", length = unit(0.05, "npc")) + scale_y_continuous(expand = c(0.1, 0.1)) +    #Genetic markers
+      labs(x = "Physical distance (Mb)", y = "Genetic distance (cM)")
 
-    geom_vline(xintercept = c, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
-    # geom_text(mapping=aes(x=c, y=0, label="Reference centromeric"), size=4, angle=90, vjust=-1, hjust=-1) +
-    geom_vline(xintercept = t, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
-    # geom_text(mapping=aes(x=t, y=0, label= "Reference telomeric"), size=4, angle=90, vjust=-1, hjust=-1) +
-    geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundArm, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric" #aes(linetype=variable)+
-    # geom_text(mapping=aes(x=heteroChromatinBoundaries$heteroBoundArm, y=0, label="BREC centromeric"), size=4, angle=90, vjust=-1, hjust=-3) +
-    geom_vline(xintercept = telomeres_boundaries$telo_arm, linetype="dashed", size=1 , color="grey40") + #color = "BREC_telomeric")
-    # geom_text(mapping=aes(x=telomeres_boundaries$telo_arm, y=0, label="BREC telomeric"), size=4, angle=90, vjust=-1, hjust=-3) +
-    # scale_color_manual(name = "Chromatin boundary", values = c(Reference = "blue", BREC_telomeric= "grey40", BREC_centromeric= "red"))+
-    labs(x = "Physical distance (Mb)", y = "Genetic distance (cM)", color="Chromatin boundaries")
+      # +++ rect BREC results
+      highlight_rect_centro_5 <- data.frame(xmin=x0_arm_centro, xmax=x1_arm_centro, ymin=rect_centro_ymin, ymax=rect_centro_ymax)
+      gg_fig15 <- gg_fig5 + geom_rect(data=highlight_rect_centro_5, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+                color = "red", linetype = "dashed",  fill="coral1", alpha=0.5, inherit.aes = FALSE)
 
-    # gg_fig5
+      highlight_rect_telo_5 <- data.frame(xmin=x0_arm_telo, xmax=x1_arm_telo, ymin=rect_telo_ymin, ymax=rect_telo_ymax)
+      gg_fig5 <- gg_fig5 + geom_rect(data=highlight_rect_telo_5, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+                color = "grey40", linetype = "dashed", fill="grey40", alpha=0.5, inherit.aes = FALSE)  #darkorchid
 
-    highlight_rect_centro <- data.frame(xmin=x0_arm_centro, xmax=x1_arm_centro, ymin=-Inf, ymax=Inf)
-    gg_fig5 <- gg_fig5 + geom_rect(data=highlight_rect_centro, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
-              fill="coral1",
-              alpha=0.3,
-              inherit.aes = FALSE)
+      # +++ rect Ref cyto
+      highlight_rect_centro_5_ref <- data.frame(xmin=x0_arm_centro_ref, xmax=x1_arm_centro_ref, ymin=rect_centro_ref_ymin, ymax=rect_centro_ref_ymax)
+      gg_fig5 <- gg_fig5 + geom_rect(data=highlight_rect_centro_5_ref, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+                color = "blue", linetype = "solid", fill="blue", alpha=0.3, inherit.aes = FALSE)
 
-    highlight_rect_telo <- data.frame(xmin=x0_arm_telo, xmax=x1_arm_telo, ymin=-Inf, ymax=Inf)
-    gg_fig5 <- gg_fig5 + geom_rect(data=highlight_rect_telo, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
-              fill="grey40",
-              alpha=0.3,
-              inherit.aes = FALSE)
+      highlight_rect_telo_5_ref <- data.frame(xmin=x0_arm_telo_ref, xmax=x1_arm_telo_ref, ymin=rect_telo_ref_ymin, ymax=rect_telo_ref_ymax)
+      gg_fig5 <- gg_fig15 + geom_rect(data=highlight_rect_telo_5_ref, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+                color = "blue", linetype = "solid", fill="blue", alpha=0.3, inherit.aes = FALSE)
+      # +++ legend
+      gg_fig5 <- gg_fig5 + theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold")
+            # , legend.box.margin = margin(r = 2, l = 1, unit='cm')
+            ,axis.text.x = element_text(size=14), axis.text.y = element_text(size=14))
+      # scale_x_continuous(breaks=seq(0,24,2)) +
+      # scale_y_continuous(breaks=seq(0,20,2))
+      # ,"\n", deca_c, "\n", deca_t
 
-    gg_fig5 <- gg_fig5 + theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold")
-              # , legend.box.margin = margin(r = 2, l = 1, unit='cm')
-              ,axis.text.x = element_text(size=14), axis.text.y = element_text(size=14))
-        # scale_x_continuous(breaks=seq(0,24,2)) +
-        # scale_y_continuous(breaks=seq(0,20,2))
-    # ,"\n", deca_c, "\n", deca_t
+      gg_fig5 <-  gg_fig5 + annotate("label", x = annotate_x, y = annotate_y, label = chrID, color = "black", size = 4, fill = "white")+
+      annotate("label", x = annotate_x, y = annotate_y, label = paste("\n\n", "shift centro =",shift_centro), color = "red", size = 4, fill = "white") +
+      annotate("label", x = annotate_x, y = annotate_y, label = paste("\n\n\n\n", "shift telo = ", shift_telo), color = "black", size = 4, fill = "white")+
+      theme_bw()  # Black and white theme
 
-    gg_fig5 <-  gg_fig5 + annotate("text", x = 12, y = 5, label = paste("shift centro =",shift_centro, "Mb"), color = "red", size = 3) +
-    annotate("text", x = 12, y = 5, label = paste("\n\n", "shift telo = ", shift_telo, "Mb"), color = "grey40", size = 3)+
-    theme_bw()  # Black and white theme
+      gg_fig5 <- gg_fig5 + coord_cartesian(ylim = c(yaxisLim0, yaxisLim1))
 
-    gg_fig5 <- gg_fig5 + coord_cartesian(ylim = c(yaxisLim0, yaxisLim1))
+      RR_object_to_plot = data.frame(mb = testChromosome$mb, Loess_span_15 = RR_object$regDr, Loess_span_25 = RR_object_25$regDr, Loess_span_50 = RR_object_50$regDr, Loess_span_75 = RR_object_75$regDr, Polynomial = RR_object_poly$regDr)
 
-    gg_fig5_RR <- ggplot(x = testChromosome) +
-      geom_line(aes(x = testChromosome$mb, y = RR_object$regDr), size=1, color="springgreen4") + labs(x=NULL, y = "Recombination rate (cM/Mb)") + annotate("text", x=5, y=3.5, label=paste(chrID, "\nspan =", spanVal), size = 3) +  theme_bw()
+      gg_fig5_RR <- RR_object_to_plot %>%
+      gather(key=Model,value, Loess_span_15, Loess_span_25, Loess_span_50, Loess_span_75, Polynomial) %>%
+      ggplot(aes(x=mb, y=value, colour=Model)) +
+      geom_line(size=1) +
+      # gg_fig5_RR <- ggplot(data = RR_object_to_plot) +
+        # geom_line(aes(x = mb, y = RR_loess_15), size=1, color="springgreen4") +
+        # geom_line(aes(y = RR_loess_25), size=1, color="darkorange1") +
+      labs(x = "Physical distance (Mb)", y = "Recombination rate (cM/Mb)") +
+      annotate("label", x=1.5, y=4.5, label=paste(chrID), size = 4, fill = "white") +
+      theme_bw() + scale_y_continuous(breaks=seq(0,6,1))+
+      theme(legend.position = "none")
 
-    # gg_fig5_both <- grid.arrange(gg_fig5_RR, gg_fig5, ncol = 1, heights = c(1, 2))
-    # ggsave(filename = paste0("span_", spanVal, "_chr_",chrID ,"_fig5.png"), plot = gg_fig5_both, path = plots_path, #device = "pdf",
-            # width = 20, height = 30, units = "cm", dpi = 600)
-    #---------
+    # ---------------------------------------------------------------------------------------------------------------------
 
     fig5_gg_all_arms_list = rlist::list.append(fig5_gg_all_arms_list, gg_fig5)
-    fig5_gg_all_arms_list = rlist::list.append(fig5_gg_all_arms_list, gg_fig5_RR)
+    fig5_gg_all_arms_RR_list = rlist::list.append(fig5_gg_all_arms_RR_list, gg_fig5_RR)
   }
 
   fig5_gg_X = fig5_gg_all_arms_list[[1]]
-  fig5_gg_X_RR = fig5_gg_all_arms_list[[2]]
-  fig5_gg_2L = fig5_gg_all_arms_list[[3]]
-  fig5_gg_2L_RR = fig5_gg_all_arms_list[[4]]
-  fig5_gg_2R = fig5_gg_all_arms_list[[5]]
-  fig5_gg_2R_RR= fig5_gg_all_arms_list[[6]]
-  fig5_gg_3L = fig5_gg_all_arms_list[[7]]
-  fig5_gg_3L_RR = fig5_gg_all_arms_list[[8]]
-  fig5_gg_3R = fig5_gg_all_arms_list[[9]]
-  fig5_gg_3R_RR = fig5_gg_all_arms_list[[10]]
+  fig5_gg_2L = fig5_gg_all_arms_list[[2]]
+  fig5_gg_2R = fig5_gg_all_arms_list[[3]]
+  fig5_gg_3L = fig5_gg_all_arms_list[[4]]
+  fig5_gg_3R = fig5_gg_all_arms_list[[5]]
+
+  fig5_gg_X_RR = fig5_gg_all_arms_RR_list[[1]]
+  fig5_gg_2L_RR = fig5_gg_all_arms_RR_list[[2]]
+  fig5_gg_2R_RR= fig5_gg_all_arms_RR_list[[3]]
+  fig5_gg_3L_RR = fig5_gg_all_arms_RR_list[[4]]
+  fig5_gg_3R_RR = fig5_gg_all_arms_RR_list[[5]]
 
   # all_in_one_gg_fig5 =  (fig5_gg_X_RR + plot_spacer())/ (fig5_gg_X + plot_spacer()) / (fig5_gg_2L_RR + fig5_gg_2R_RR) / (fig5_gg_2L + fig5_gg_2R) / (fig5_gg_3L_RR + fig5_gg_3R_RR) / (fig5_gg_3L + fig5_gg_3R) + plot_layout(guides = 'collect')
 
-  all_in_one_gg_fig5 =  fig5_gg_X_RR + plot_spacer()/  fig5_gg_2L + fig5_gg_2R / fig5_gg_3L + fig5_gg_3R + plot_layout(guides = 'collect')
+  all_in_one_gg_fig5 =  (fig5_gg_X + plot_spacer()) /  (fig5_gg_2L + fig5_gg_2R) / (fig5_gg_3L + fig5_gg_3R) +
+    plot_layout(guides = 'collect')
+  ggsave(filename = paste0("span_", spanVal*100, "_all_in_one_gg_fig5_MBE.png"), plot = all_in_one_gg_fig5, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
+  all_in_one_gg_fig5
 
-   # all_in_one_gg_fig13 =  fig13_gg_100 + fig13_gg_90 + fig13_gg_80 +fig13_gg_70 + fig13_gg_60 +fig13_gg_50 + fig13_gg_40 + fig13_gg_30  + guide_area() +
+  all_in_one_gg_fig5_RR =  (fig5_gg_X_RR + plot_spacer()) /  (fig5_gg_2L_RR + fig5_gg_2R_RR) / (fig5_gg_3L_RR + fig5_gg_3R_RR) +
+    plot_layout(guides = 'collect')
+  ggsave(filename = paste0("span_", spanVal*100,"_and_span_", spanVal_25*100, "_all_in_one_gg_fig5_RR_MBE.png"), plot = all_in_one_gg_fig5_RR, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
+  all_in_one_gg_fig5_RR
+
+   # all_in_one_gg_fig13 =  fig13_gg_100 + fig13_gg_9 0 + fig13_gg_80 +fig13_gg_70 + fig13_gg_60 +fig13_gg_50 + fig13_gg_40 + fig13_gg_30  + guide_area() +
    #  # + # + plot_spacer()
    #  plot_layout(guides = 'collect')
 
-  all_in_one_gg_fig5
-  ggsave(filename = paste0("span_", spanVal, "all_in_one_gg_fig5.png"), plot = all_in_one_gg_fig5, path = plots_path, #device = "pdf",
-            width = 20, height = 25, units = "cm", dpi = 600)
+
+@
+
+
+\section{Validation of recombination rates with the high resolution map from FlyBase}
+<<echo=F>>=
+
+# -------Load and prepare Langley data (with plotting the content) -----------------------------
+figFlyBase_gg_all_arms_list = list()
+
+langleyData <- read.csv(file = paste0(getwd(), "/../datasets/Langley_TableS12.txt"), skip= 3, sep="\t", header=TRUE)
+    # print(head(langleyData))
+
+    langleyData_X = langleyData[ , c(1:4)]
+    langleyData_2L = langleyData[ , c(6:9)]
+    langleyData_2R = langleyData[ , c(11:14)]
+    langleyData_3L = langleyData[ , c(16:19)]
+    langleyData_3R = langleyData[ , c(21:24)]
+
+    newChrList = c("X", "2L", "2R", "3L", "3R")
+    # newChrList = c("X") #, "3L"  only these 2 are working fpr now
+    for (chrID in newChrList) {
+      print(c("*********start chr", chrID))
+
+        # chrID = "3R"
+        if(chrID == "X"){
+            langleyData = langleyData_X
+        }else if(chrID == "2L"){
+            langleyData = langleyData_2L
+        }else if(chrID == "2R"){
+            langleyData = langleyData_2R
+        }else if(chrID == "3L"){
+            langleyData = langleyData_3L
+        }else if(chrID == "3R"){
+            langleyData = langleyData_3R
+        }
+        names(langleyData)[c(1:4)] = c("Cytogenetic", "cM", "end", "M.bp")
+
+  # ------- get refChromosome data from Langley ------------------------------------------------------------------
+      langleyChromosome = langleyData[c(2, 3)]
+      names(langleyChromosome) <- c("cm", "mb")
+      langleyChromosome$mb = langleyChromosome$mb/10^6
+      testChromosome = na.rm(langleyChromosome)
+
+  # -------get BREC results for the same physical ma as Langley and with extrapolation----------------------------
+
+      spanVal = 0.15
+      RR_object = estimate_recombination_rates_loess(testChromosome, spanVal)
+      # RR_object$regDr[RR_object$regDr<0]=0
+      print("RR done")
+
+      minRR_object = get_min_RR_value_based_on_polynomial(testChromosome)
+      print(" get minRR done !")
+      # print(minRR_object)
+
+      # chrType_object = get_chromosome_type(testChromosome, chrID, minRR_object) # to prevent asking the user to decide (experimenting with Dmel)
+      chrType_object = data.frame(chr_type = 0, chr_sub_type = "Telocentric")
+      chrType = chrType_object$chr_type
+      # print(chrType_object)
+
+      R2DataFrame2D = compute_cumulated_R_squared_2directions(testChromosome)
+      print("R2 done")
+
+      # if(using_slidingWindowApproach_for_HCB) {
+      print("Extracting CB for this chromosome ...")
+      heteroChromatinBoundaries = extract_CB(testChromosome, RR_object, R2DataFrame2D, chrID, chrType, minRR_object)
+      print("extract centroCB done")
+      telomeres_boundaries = extract_telomeres_boundaries(testChromosome, R2DataFrame2D, chrID, chrType, minRR_object)
+      print("extract telo CB done")
+      RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
+      print("extrapolation done")
+
+
+      # ------------------plotting with ggplot ==> second y axis issues ==> solved with plotly -------------
+      sizeArm = testChromosome$mb[nrow(testChromosome)]
+      startArm = testChromosome$mb[1]
+
+      if(chrID %in% c("X", "2L", "3L")){ # left arms
+          rect_x_min_c = heteroChromatinBoundaries$heteroBoundArm
+          rect_x_max_c = sizeArm
+          rect_x_min_t = startArm
+          rect_x_max_t = telomeres_boundaries$telo_arm
+          xlabel = 17
+          ylabel = 6
+      }else{ # right arms
+          rect_x_min_c = startArm
+          rect_x_max_c = heteroChromatinBoundaries$heteroBoundArm
+          rect_x_min_t = telomeres_boundaries$telo_arm
+          rect_x_max_t = sizeArm
+          xlabel = 5
+          ylabel = 4
+      }
+      if(chrID == "X"){
+          xlabel = 10
+          ylabel = 0.5
+      }
+
+      RR_validation_to_plot = data.frame(mb = testChromosome$mb, FlyBase = langleyData$M.bp[1:nrow(testChromosome)]*10^8, BREC = RR_object$regDr)
+
+      #-------- test de correlation
+      corr_test_res <- cor.test(x = RR_validation_to_plot$FlyBase, y = RR_validation_to_plot$BREC, method = "spearman")
+      corr_test_pval = corr_test_res$p.value
+      print(chrID)
+      print(corr_test_pval)
+      corr_test_stat = round(corr_test_res$estimate, 2)
+
+      # ----------------
+      highlight_rect_centro_fig_FB = data.frame(xmin=rect_x_min_c, xmax=rect_x_max_c, ymin=-Inf, ymax=Inf)
+      highlight_rect_telo_fig_FB = data.frame(xmin=rect_x_min_t, xmax=rect_x_max_t, ymin=-Inf, ymax=Inf)
+
+      scale_y_max_breaks = ceiling(max(RR_validation_to_plot$FlyBase))
+      p <- RR_validation_to_plot %>%
+        gather(key=Recombination_map, value, FlyBase, BREC) %>%
+        ggplot(aes(x = mb, y = value, color = Recombination_map)) +
+        geom_line(size=1) +
+        geom_rect(data=highlight_rect_centro_fig_FB, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), fill="coral1", alpha=0.3, inherit.aes = FALSE) +
+        geom_rect(data=highlight_rect_telo_fig_FB, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), fill="grey40", alpha=0.3, inherit.aes = FALSE) +
+        # annotate("label", x= 1, y= scale_y_max_breaks-2, label=paste(chrID), size = 4, fill = "white") +
+        annotate("label", x= 12, y= scale_y_max_breaks+1.5, label=paste(chrID, "     Pvalue<<0.001     ", " rho=", corr_test_stat), size = 4, fill = "white") + #
+          theme_bw() + scale_y_continuous(breaks=seq(0, 8, 1)) +
+        # theme(legend.position = "none")
+        scale_colour_manual(values = c("red", "blue")) + #springgreen4
+        labs(x = "Physical distance (Mb)", y = "Recombination rate (cM/Mb)", colour = "Recombination map") +
+        theme(legend.position = "none")
+        # theme(legend.position = c(0.2, 0.9))
+      print(p)
+
+      ggsave(filename = paste0("chr_",chrID,"BREC_vs_Langley_as_FlyBase_span_15", ".png"), plot = p, path = plots_path, #device = "pdf",
+              width = 20, height = 25, units = "cm", dpi = 300)
+
+
+      figFlyBase_gg_all_arms_list = rlist::list.append(figFlyBase_gg_all_arms_list, p)
+      print(c("*********end chr", chrID))
+  }
+
+  figFlyBase_gg_X_RR = figFlyBase_gg_all_arms_list[[1]]
+  figFlyBase_gg_2L_RR = figFlyBase_gg_all_arms_list[[2]]
+  figFlyBase_gg_2R_RR= figFlyBase_gg_all_arms_list[[3]]
+  figFlyBase_gg_3L_RR = figFlyBase_gg_all_arms_list[[4]]
+  figFlyBase_gg_3R_RR = figFlyBase_gg_all_arms_list[[5]]
+
+  # all_in_one_gg_fig5 =  (fig5_gg_X_RR + plot_spacer())/ (fig5_gg_X + plot_spacer()) / (fig5_gg_2L_RR + fig5_gg_2R_RR) / (fig5_gg_2L + fig5_gg_2R) / (fig5_gg_3L_RR + fig5_gg_3R_RR) / (fig5_gg_3L + fig5_gg_3R) + plot_layout(guides = 'collect')
+
+  figFlyBase_all_in_one_gg =  (figFlyBase_gg_X_RR + plot_spacer()) /  (figFlyBase_gg_2L_RR + figFlyBase_gg_2R_RR) / (figFlyBase_gg_3L_RR + figFlyBase_gg_3R_RR) +
+    plot_layout(guides = 'collect')
+
+  ggsave(filename = paste0("figFlyBase_all_in_one_gg_BREC_vs_Langley_as_FlyBase_span_15.png"), plot = figFlyBase_all_in_one_gg, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
+  figFlyBase_all_in_one_gg
 
 @
 
 \section{DQC}
 \subsection{Density}
 \subsubsection{DQC: density table for 2L and simulated chromosome}
-<<echo=F, results=tex>>=
+<<echo=F>>=
+
 
 ## R5 ref cyto boundaries
 options(xtable.floating = FALSE)
@@ -316,8 +651,8 @@ print(density_tab_2simu)
 
 \subsubsection{DQC: assessing the impact of decreasing markers density on the shift value (shift = ref_hcb - brec_hcb)}
 \paragraph Simulation are conducted based on the 5 chromosomal arms of D. melanogaster R5 genome. For each, we simulated a new chromosome data with decresaing length
-<<echo=F, results=tex>>=
-
+<<echo=F>>=
+# ((((((((((((((((((((((((((((((((( main figure 30x  decreasing density simulations  )))))))))))))))))))))))))))))))))
 densityList= list()
 d_list_for_all_chr = list()
 
@@ -325,20 +660,20 @@ for (chrID in chrList) {
 
     ## R5_assign ref cyto boundaries according to chr in process
     if(chrID == "2L"){
-        c = 19.954780
-        t = 0.698949
+        ref_c = 19.954780
+        ref_t = 0.698949
     }else if(chrID == "2R"){
-        c = 6.090470
-        t = 20.020890
+        ref_c = 6.090470
+        ref_t = 20.020890
     }else if(chrID == "3L"){
-        c = 18.408033
-        t = 0.356604
+        ref_c = 18.408033
+        ref_t = 0.356604
     }else if(chrID == "3R"){
-        c = 8.349278
-        t = 27.248244
+        ref_c = 8.349278
+        ref_t = 27.248244
     }else if(chrID == "X"){
-        c =  20.665672
-        t =  2.460008
+        ref_c =  20.665672
+        ref_t =  2.460008
     }
     print(c("=========== chr in process ====> ", chrID, "==================="))
     refChromosome = get_chromosome_from_inputData(inputData, chrID)
@@ -360,11 +695,6 @@ for (chrID in chrList) {
   tictoc::tic()
 
     testChromosome = refChromosome
-    # decacl = c() # centro_left decalage_of_Brec_estimated_HCB_compared_To_ref_cyto_HCB
-    # decacr = c() # centro_right
-    # decatl = c() # telo_left
-    # decatr = c() # telo_right
-
     deca_c = c() # centro decalage_of_Brec_estimated_HCB_compared_To_ref_cyto_HCB
     deca_t = c() # telo
 
@@ -374,11 +704,6 @@ for (chrID in chrList) {
     testSizes = seq(1, 0.30, by = -0.05) # simulation fractions vector
 
     for(frac in testSizes) {#testSizes each 5%
-        # hcb_cl = c()
-        # hcb_cr = c()
-        # hcb_tl = c()
-        # hcb_tr = c()
-
         hcb_c = c()
         hcb_t = c()
 
@@ -394,7 +719,7 @@ for (chrID in chrList) {
 
                 # gg1 = ggplot(data = testChromosome, mapping = aes(x=mb, y=cm)) + geom_point()
                 # ggsave(filename = paste0("chr_",chrID, "_SimuChr-NbrMrks=", frac*100, "percent_testNo_",i,".png"), plot = gg1, path = plots_path,
-                #        width = 3.5, height = 3, units = "in", dpi = 600)) #plot = last_plot()
+                #        width = 3.5, height = 3, units = "in", dpi = 300)) #plot = last_plot()
 
                 # run BREC to get new HCB
                 RR_object = estimate_recombination_rates_loess(testChromosome, spanVal = 0.15)
@@ -421,11 +746,6 @@ for (chrID in chrList) {
                 RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
                 print("extrapolation done")
 
-            #     hcb_cl = c(hcb_cl, heteroChromatinBoundaries$heteroBoundLeft)
-            #     hcb_cr = c(hcb_cr, heteroChromatinBoundaries$heteroBoundRight)
-            #     hcb_tl = c(hcb_tl, telomeres_boundaries$extrapolPhysPos_left)
-            #     hcb_tr = c(hcb_tr, telomeres_boundaries$extrapolPhysPos_right)
-
                 hcb_c = c(hcb_c, heteroChromatinBoundaries$heteroBoundArm)
                 hcb_t = c(hcb_t, telomeres_boundaries$telo_arm)
             }
@@ -438,7 +758,7 @@ for (chrID in chrList) {
 
             # gg2 = ggplot(data = testChromosome, mapping = aes(x=mb, y=cm)) + geom_point()
             # ggsave(filename = paste0("chr_",chrID, "_SimuChr-NbrMrks=", frac*100, "percent_original_cleaned_chromosome.png"), plot = gg2, path = plots_path,
-            #        width = 3.5, height = 3, units = "in", dpi = 600)
+            #        width = 3.5, height = 3, units = "in", dpi = 300)
 
             # run BREC to get new HCB
             RR_object = estimate_recombination_rates(testChromosome)
@@ -468,11 +788,6 @@ for (chrID in chrList) {
             RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
             print("extrapolation done")
 
-            # hcb_cl = c(hcb_cl, heteroChromatinBoundaries$heteroBoundLeft)
-            # hcb_cr = c(hcb_cr, heteroChromatinBoundaries$heteroBoundRight)
-            # hcb_tl = c(hcb_tl, telomeres_boundaries$extrapolPhysPos_left)
-            # hcb_tr = c(hcb_tr, telomeres_boundaries$extrapolPhysPos_right)
-
             hcb_c = c(hcb_c, heteroChromatinBoundaries$heteroBoundArm)
             hcb_t = c(hcb_t, telomeres_boundaries$telo_arm)
 
@@ -484,29 +799,19 @@ for (chrID in chrList) {
 
         print(c("frac = ", frac, "n = ", nrow(testChromosome)))
         mkrDensity = c(mkrDensity, nrow(testChromosome))
-
-        # mhcb_cl = mean(abs(cl - hcb_cl))
-        # mhcb_cr = mean(abs(cr - hcb_cr))
-        # mhcb_tl = mean(abs(tl - hcb_tl))
-        # mhcb_tr = mean(abs(tr - hcb_tr))
-        #
-        # decacl = c(decacl, mhcb_cl)
-        # decacr = c(decacr, mhcb_cr)
-        # decatl = c(decatl, mhcb_tl)
-        # decatr = c(decatr, mhcb_tr)
-
-        mhcb_c = mean(abs(c - hcb_c))
-        mhcb_t = mean(abs(t - hcb_t))
-
+        mhcb_c = mean(abs(ref_c - hcb_c))
+        mhcb_t = mean(abs(ref_t - hcb_t))
         deca_c = c(deca_c, mhcb_c)
         deca_t = c(deca_t, mhcb_t)
-
     }
 
-    mkrDensity
-    densityList = rlist::list.append(densityList, mkrDensity )
+    # mkrDensity
+    densityList = rlist::list.append(densityList, mkrDensity)
 
-    fractions = testSizes*100  #[1:10]
+    # deca_c = abs(deca_c - ref_c)
+    # deca_t = abs(deca_t - ref_t)
+
+    fractions = testSizes*100
     # res = data.frame(fractions, telo_left = decatl, centro_left = decacl, centro_right = decacr, telo_right = decatr)
     res = data.frame(fractions, Telomeric = deca_t, Centromeric = deca_c) #, Chromosome = chrID)
     d <- melt(res, id="fractions")
@@ -516,113 +821,122 @@ for (chrID in chrList) {
 names(d_list_for_all_chr) <- chrList
 d_list_for_all_chr$X
 tictoc::toc()
-
+# -------------------------------------------------------------------
 # plotting in the same figure all chromosomes from d_list_for_all_chr
+    ggX <- ggplot(d_list_for_all_chr$`X`, aes(x=fractions, y = value, color=variable)) +
+        geom_line(aes(), size=1) +
+        geom_point(aes(shape=variable ), size=4) +
+        geom_segment(aes(x = Inf, xend = 65, y = 3, yend = 3), linetype="dashed", size=1, color="black") +
+        geom_segment(aes(x = 65, xend =65, y = -Inf, yend = 3), linetype="dashed", size=1, color="black") +
+        theme_bw() +
+        scale_shape_manual(values= c(15,17)) + annotate("label", x = 70, y = 11, label = paste("X"), size = 3, fill = "white")+
+        labs(x = "Decreasing fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary", shape = "Chromatin boundary") +
+        theme(legend.position = "none") +
+        # theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"),
+        #       legend.box.margin = margin(r = 2, l = 1, unit='cm'),
+        #       axis.text.x = element_text(size=14), axis.text.y = element_text(size=14)) +
+        scale_x_continuous(trans = "reverse", breaks=seq(100, 30,-10))+
+        scale_y_continuous(breaks=seq(0,20,1))
+    ggX
+    ggsave(filename = paste0("chr_X",  "_SimuResuts_MBE.png"), plot = ggX, path = plots_path, #device = "pdf",
+            width = 3.5, height = 3, units = "cm", dpi = 300)
+
+
     gg2L <- ggplot(d_list_for_all_chr$`2L`, aes(x=fractions, y = value, color=variable )) +
-       geom_line(aes(), size=1) + #aes(linetype=variable)
-        geom_point(aes(), size=4) +
-        geom_vline(xintercept = 50, linetype="dashed",  color="red") +# size=1.5,
-        # scale_linetype_manual(values = c(2,1)) +
-        # scale_shape_manual(values= c(15)) +
-        labs(x = "Fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary") +
-        theme(legend.position = "none",
-        axis.text.x = element_text(size=14), axis.text.y = element_text(size=14) )+
-        scale_x_continuous(breaks=seq(30,100,10)) +
+       geom_line(aes(), size=1) +
+        geom_point(aes(shape=variable ), size=4) +
+        geom_segment(aes(x = Inf, xend = 70, y = 3, yend = 3), linetype="dashed", size=1, color="black") +
+        geom_segment(aes(x = 70, xend =70, y = -Inf, yend = 3), linetype="dashed", size=1, color="black") +
+        theme_bw() +
+        scale_shape_manual(values= c(15,17)) + annotate("label", x = 70, y = 5.5, label = paste("2L"), size = 3, fill = "white")+
+        labs(x = "Decreasing fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary" , shape = "Chromatin boundary") +
+        theme(legend.position = "none") +
+        # theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"),
+        #       legend.box.margin = margin(r = 2, l = 1, unit='cm'),
+        #       axis.text.x = element_text(size=14), axis.text.y = element_text(size=14)) +
+        scale_x_continuous(trans = "reverse", breaks=seq(100, 30,-10))+
         scale_y_continuous(breaks=seq(0,20,1))
     gg2L
-    ggsave(filename = paste0("chr_2L",  "_SimuResuts.png"), plot = gg2L, path = plots_path, #device = "pdf",
-            width = 3.5, height = 3, units = "in", dpi = 600)
+    ggsave(filename = paste0("chr_2L",  "_SimuResuts_MBE.png"), plot = gg2L, path = plots_path, #device = "pdf",
+            width = 3.5, height = 3, units = "in", dpi = 300)
 
     gg2R <- ggplot(d_list_for_all_chr$`2R`, aes(x=fractions, y = value, color=variable )) +
-       geom_line(aes(), size=1) + #aes(linetype=variable)
-        geom_point(aes(), size=4) +
-        geom_vline(xintercept = 50, linetype="dashed",  color="red") +# size=1.5,
-        # scale_linetype_manual(values = c(2,1)) +
-        # scale_shape_manual(values= c(15)) +
-        labs(x = "Fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary") +
-        theme(legend.position = "none",
-        axis.text.x = element_text(size=14), axis.text.y = element_text(size=14) )+
-        scale_x_continuous(breaks=seq(30,100,10)) +
+        geom_line(aes(), size=1) +
+        geom_point(aes(shape=variable ), size=4) +
+        geom_segment(aes(x = Inf, xend = 35, y = 3, yend = 3), linetype="dashed", size=1, color="black") +
+        geom_segment(aes(x = 35, xend =35, y = -Inf, yend = 3), linetype="dashed", size=1, color="black") +
+        theme_bw() +
+        scale_shape_manual(values= c(15,17)) + annotate("label", x = 70, y = 3.2, label = paste("2R"), size = 3, fill = "white")+
+        labs(x = "Decreasing fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary", shape = "Chromatin boundary") +
+        theme(legend.position = "none") +
+        # theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"),
+        #       legend.box.margin = margin(r = 2, l = 1, unit='cm'),
+        #       axis.text.x = element_text(size=14), axis.text.y = element_text(size=14)) +
+        scale_x_continuous(trans = "reverse", breaks=seq(100, 30,-10))+
         scale_y_continuous(breaks=seq(0,20,1))
     gg2R
-    ggsave(filename = paste0("chr_2R",  "_SimuResuts.png"), plot = gg2R, path = plots_path, #device = "pdf",
-            width = 3.5, height = 3, units = "in", dpi = 600)
+    ggsave(filename = paste0("chr_2R",  "_SimuResuts_MBE.png"), plot = gg2R, path = plots_path, #device = "pdf",
+            width = 3.5, height = 3, units = "in", dpi = 300)
 
     gg3L <- ggplot(d_list_for_all_chr$`3L`, aes(x=fractions, y = value, color=variable )) +
-        geom_line(aes(), size=1) + #aes(linetype=variable)
-        geom_point(aes(), size=4) +
-        geom_vline(xintercept = 50, linetype="dashed",  color="red") +# size=1.5,
-        # scale_linetype_manual(values = c(2,1)) +
-        # scale_shape_manual(values= c(15)) +
-        labs(x = "Fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary") +
-        theme(legend.position = "none",
-        axis.text.x = element_text(size=14), axis.text.y = element_text(size=14) )+
-        scale_x_continuous(breaks=seq(30,100,10)) +
+        geom_line(aes(), size=1) +
+        geom_point(aes(shape=variable ), size=4) +
+        geom_segment(aes(x = Inf, xend = 80, y = 3, yend = 3), linetype="dashed", size=1, color="black") +
+        geom_segment(aes(x = 80, xend = 80, y = -Inf, yend = 3), linetype="dashed", size=1, color="black") +
+        theme_bw() +
+        scale_shape_manual(values= c(15,17)) + annotate("label", x = 70, y = 6.5, label = paste("3L"), size = 3, fill = "white")+
+        labs(x = "Decreasing fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary", shape = "Chromatin boundary") +
+        theme(legend.position = "none") +
+        # theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"),
+        #       legend.box.margin = margin(r = 2, l = 1, unit='cm'),
+        #       axis.text.x = element_text(size=14), axis.text.y = element_text(size=14)) +
+        scale_x_continuous(trans = "reverse", breaks=seq(100, 30,-10))+
         scale_y_continuous(breaks=seq(0,20,1))
     gg3L
-    ggsave(filename = paste0("chr_3L",  "_SimuResuts.png"), plot = gg3L, path = plots_path, #device = "pdf",
-            width = 3.5, height = 3, units = "in", dpi = 600)
+    ggsave(filename = paste0("chr_3L",  "_SimuResuts_MBE.png"), plot = gg3L, path = plots_path, #device = "pdf",
+            width = 3.5, height = 3, units = "in", dpi = 300)
 
     gg3R <- ggplot(d_list_for_all_chr$`3R`, aes(x=fractions, y = value, color=variable )) +
-        geom_line(aes(), size=1) + #aes(linetype=variable)
-        geom_point(aes(), size=4) +
-        geom_vline(xintercept = 50, linetype="dashed",  color="red") +# size=1.5,
-        # scale_linetype_manual(values = c(2,1)) +
-        # scale_shape_manual(values= c(15)) +
-        labs(x = "Fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary") +
-        theme(legend.position = "none",
-        axis.text.x = element_text(size=14), axis.text.y = element_text(size=14) )+
-        scale_x_continuous(breaks=seq(30,100,10)) +
+        geom_line(aes(), size=1) +
+        geom_point(aes(shape=variable ), size=4) +
+        geom_segment(aes(x = Inf, xend = 45, y = 3, yend = 3), linetype="dashed", size=1, color="black") +
+        geom_segment(aes(x = 45, xend =45, y = -Inf, yend = 3), linetype="dashed", size=1, color="black") +
+        theme_bw() +
+        scale_shape_manual(values= c(15,17)) + annotate("label", x = 70, y = 4.6, label = paste("3R"), size = 3, fill = "white")+
+        labs(x = "Decreasing fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary", shape = "Chromatin boundary") +
+        theme(legend.position = "none") +
+        # theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"),
+        #       legend.box.margin = margin(r = 2, l = 1, unit='cm'),
+        #       axis.text.x = element_text(size=14), axis.text.y = element_text(size=14)) +
+        scale_x_continuous(trans = "reverse", breaks=seq(100, 30,-10))+
         scale_y_continuous(breaks=seq(0,20,1))
     gg3R
-    ggsave(filename = paste0("chr_3R",  "_SimuResuts.png"), plot = gg3R, path = plots_path, #device = "pdf",
-            width = 3.5, height = 3, units = "in", dpi = 600)
-
-    ggX <- ggplot(d_list_for_all_chr$`X`, aes(x=fractions, y = value, color=variable)) +
-        geom_line(aes(), size=1) + #aes(linetype=variable)
-        geom_point(aes(), size=4) +
-        geom_vline(xintercept = 50, linetype="dashed",  color="red") +# size=1.5,
-        # scale_linetype_manual(values = c(2,1)) +
-        # scale_shape_manual(values= c(15)) +
-        labs(x = "Fractions (%)", y = "Shift (Mb)",  color = "Chromatin boundary") +
-        theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"), legend.box.margin = margin(r = 2, l = 1, unit='cm'),
-              axis.text.x = element_text(size=14), axis.text.y = element_text(size=14)) +
-        scale_x_continuous(breaks=seq(30,100,10)) +
-        scale_y_continuous(breaks=seq(0,20,2))
-    ggX
-    ggsave(filename = paste0("chr_X",  "_SimuResuts.png"), plot = ggX, path = plots_path, #device = "pdf",
-            width = 3.5, height = 3, units = "cm", dpi = 600)
-
-    # all_in_one =
-    all_in_one_gg = ggarrange(ggX, labels = "X",nrow = 2, hjust = -13, vjust = 3
-                ,ggarrange(gg2L,gg2R,gg3L, gg3R , nrow = 2, ncol = 2
-                      ,labels = c("2L", "2R", "3L", "3R"), hjust = -7, vjust = 3)
-    )
-    # all_in_one_gg
+    ggsave(filename = paste0("chr_3R",  "_SimuResuts_MBE.png"), plot = gg3R, path = plots_path, #device = "pdf",
+            width = 3.5, height = 3, units = "in", dpi = 300)
 
 
-    ggsave(filename = paste0("all_in_one",  "_SimuResuts_2.png"), plot = all_in_one_gg, path = plots_path, #device = "pdf",
-            width = 20, height = 25, units = "cm", dpi = 600)
-
-    # --- other ways to plot all in one --------------------------------------------------
-    # ggarrange(ggX,gg2L,gg2R,gg3L, gg3R , nrow = 3, ncol = 2
-    #                   ,labels = c("X","2L", "2R", "3L", "3R"), hjust = -15, vjust = 3
-    #                  # ,common.legend = T
+    # all_in_one_gg = ggarrange(ggX, labels = "X",nrow = 2, hjust = -13, vjust = 3
+    #             ,ggarrange(gg2L,gg2R,gg3L, gg3R , nrow = 2, ncol = 2
+    #                   ,labels = c("2L", "2R", "3L", "3R"), hjust = -7, vjust = 3)
     # )
 
+    all_in_one_gg = (ggX + plot_spacer()) / (gg2L + gg2R) / (gg3L + gg3R)+
+    plot_layout(guides = 'collect')
 
-    #  (ggX) / (gg2L + gg2R) / (gg3L + gg3R) +
-    # plot_layout(guides = 'collect') #+
-    #      # plot_layout(ncol = 1)
-    #--------------------------------------------------------------------------------------
+    # all_in_one_gg = ggarrange(gg2L, labels = "X",nrow = 2, hjust = -13, vjust = 3
+    #             ,ggarrange(gg2L,gg2L,gg2L, gg2L , nrow = 2, ncol = 2
+    #                   ,labels = c("2L", "2R", "3L", "3R"), hjust = -7, vjust = 3)
+    # )
 
-    RR_plot_smallest_chr = plot_all(testChromosome, RR_object, genomeName ="dmel", toString(chrID), R2DataFrame2D, heteroChromatinBoundaries, heteroChromatinBoundaries$swSize, telomeres_boundaries, plots_path, chrType_object)
-    print(RR_plot_smallest_chr)
+    ggsave(filename = paste0("all_in_one",  "_SimuResuts_2_MBE.png"), plot = all_in_one_gg, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
+print(all_in_one_gg)
+
 @
 
 
 \subsection{Chromatin boundaries validation plot(ly)s}
-<<echo=F, results=tex>>=
+<<echo=F>>=
 
 # densityList= list()
 # d_list_for_all_chr = list()
@@ -632,8 +946,8 @@ fig13_gg_per_fraction_list = list()
     ## R5_assign ref cyto boundaries for chr 2L in process
     chrID = "2L"
 
-    c = 19.954780
-    t = 0.698949
+    ref_c = 19.954780
+    ref_t = 0.698949
     print(c("=========== chr in process ====> ", chrID, "==================="))
     refChromosome = get_chromosome_from_inputData(inputData, chrID)
     print(c("refChromosomeSize",nrow(refChromosome)))
@@ -737,9 +1051,9 @@ fig13_gg_per_fraction_list = list()
         # plotting ----
         gg_fig13 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.5, color="black") +#Genetic markers
 
-        geom_vline(xintercept = c, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
+        geom_vline(xintercept = ref_c, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
         # geom_text(mapping=aes(x=c, y=0, label="Reference centromeric"), size=4, angle=90, vjust=-1, hjust=-1) +
-        geom_vline(xintercept = t, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
+        geom_vline(xintercept = ref_t, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
         # geom_text(mapping=aes(x=t, y=0, label= "Reference telomeric"), size=4, angle=90, vjust=-1, hjust=-1) +
         geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundArm, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric" #aes(linetype=variable)+
         # geom_text(mapping=aes(x=heteroChromatinBoundaries$heteroBoundArm, y=0, label="BREC centromeric"), size=4, angle=90, vjust=-1, hjust=-3) +
@@ -768,13 +1082,13 @@ fig13_gg_per_fraction_list = list()
             # scale_y_continuous(breaks=seq(0,20,2))
         # ,"\n", deca_c, "\n", deca_t
 
-        gg_fig13 =  gg_fig13 + annotate("text", x = 12, y = 5, label = paste("fraction = ",frac*100, "%\n", "density = ",mkrDensity, "mkr/Mb" ), size = 3)+
+        gg_fig13 =  gg_fig13 + annotate("label", x = 12, y = 5, label = paste("fraction = ",frac*100, "%\n", "density = ",mkrDensity, "mkr/Mb" ), size = 3, fill = "white")+
           theme_bw()  # Black and white theme
 
         gg_fig13
 
-        ggsave(filename = paste0("chr_",chrID ,"_frac_", frac*100,"_density_fig13_with_cleaning.png"), plot = gg_fig13, path = plots_path, #device = "pdf",
-                width = 20, height = 30, units = "cm", dpi = 600)
+        ggsave(filename = paste0("chr_",chrID ,"_frac_", frac*100,"_density_fig13_with_cleaning_MBE.png"), plot = gg_fig13, path = plots_path, #device = "pdf",
+                width = 20, height = 30, units = "cm", dpi = 300)
         #---------
 
             fig13_gg_per_fraction_list = rlist::list.append(fig13_gg_per_fraction_list, gg_fig13)
@@ -806,7 +1120,7 @@ tictoc::toc()
     #     scale_y_continuous(breaks=seq(0,20,1))
     # gg2L
     # ggsave(filename = paste0("chr_2L",  "_SimuResuts.png"), plot = gg2L, path = plots_path,
-    #         width = 3.5, height = 3, units = "in", dpi = 600)
+    #         width = 3.5, height = 3, units = "in", dpi = 300)
 
     fig13_gg_100 = fig13_gg_per_fraction_list[[1]]
     fig13_gg_90 = fig13_gg_per_fraction_list[[2]]
@@ -846,8 +1160,8 @@ tictoc::toc()
 
    all_in_one_gg_fig13
 
-    ggsave(filename = paste0("all_in_one_fig13_new_with_cleaning.png"), plot = all_in_one_gg_fig13, path = plots_path, #device = "pdf",
-            width = 20, height = 25, units = "cm", dpi = 600)
+    ggsave(filename = paste0("all_in_one_fig13_new_with_cleaning_MBE.png"), plot = all_in_one_gg_fig13, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
 
     # --- other ways to plot all in one --------------------------------------------------
     # ggarrange(ggX,gg2L,gg2R,gg3L, gg3R , nrow = 3, ncol = 2
@@ -868,7 +1182,7 @@ tictoc::toc()
 @
 
 \subsection{Chromatin boundaries validation plot(ly)s====> chr 2 simu per fraction}
-<<echo=F, results=tex>>=
+<<echo=F>>=
 
 # densityList= list()
 # d_list_for_all_chr = list()
@@ -878,10 +1192,10 @@ fig14_gg_per_fraction_list = list()
     ## R5_assign ref cyto boundaries for chr 2L in process
     chrID = "2"
 
-    c = 19.954780
-    t = 0.698949
-    c2 = 6.090470 + 22.87981 # 2R
-    t2 = 20.020890 + 22.87981
+    ref_c = 19.954780
+    ref_t = 0.698949
+    ref_c2 = 6.090470 + 22.87981 # 2R
+    ref_t2 = 20.020890 + 22.87981
 
     print(c("=========== chr in process ====> ", chrID, "==================="))
     refChromosome_2L = get_chromosome_from_inputData(inputData, "2L")
@@ -948,7 +1262,7 @@ fig14_gg_per_fraction_list = list()
 
         # gg2 = ggplot(data = testChromosome, mapping = aes(x=mb, y=cm)) + geom_point()
         # ggsave(filename = paste0("chr_",chrID, "_SimuChr-NbrMrks=", frac*100, "percent_original_cleaned_chromosome.png"), plot = gg2, path = plots_path,
-        #        width = 3.5, height = 3, units = "in", dpi = 600)
+        #        width = 3.5, height = 3, units = "in", dpi = 300)
 
         # cleaning step----------------------------------------------------------------
         testChromosome = clean_chromosome_data(testChromosome, genomeName = "Dmel_R5", chrID) #=> 2L original = 110
@@ -1007,13 +1321,13 @@ fig14_gg_per_fraction_list = list()
         # plotting ----
         gg_fig14 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.5, color="black") +#Genetic markers
 
-        geom_vline(xintercept = c, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
-        geom_vline(xintercept = t, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
+        geom_vline(xintercept = ref_c, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
+        geom_vline(xintercept = ref_t, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
         geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundLeft, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric"
         geom_vline(xintercept = telomeres_boundaries$telo_left, linetype="dashed", size=1 , color="grey40") + #color = "BREC_telomeric")
 
-        geom_vline(xintercept = c2, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
-        geom_vline(xintercept = t2, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
+        geom_vline(xintercept = ref_c2, linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
+        geom_vline(xintercept = ref_t2, linetype="solid", size=1 , color="blue") + #aes(linetype=variable)
         geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundRight, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric"
         geom_vline(xintercept = telomeres_boundaries$telo_right, linetype="dashed", size=1 , color="grey40") + #color = "BREC_telomeric")
         labs(x = "Physical distance (Mb)", y = "Genetic distance (cM)")
@@ -1043,13 +1357,13 @@ fig14_gg_per_fraction_list = list()
         # scale_y_continuous(breaks=seq(0,20,2))
     # ,"\n", deca_c, "\n", deca_t
 
-    gg_fig14 =  gg_fig14 + annotate("text", x = 10, y = 90, label = paste("fraction = ",frac*100, "%\n", "density = ",mkrDensity, "mkr/Mb" ), size = 3)+
+    gg_fig14 =  gg_fig14 + annotate("label", x = 10, y = 90, label = paste("fraction = ",frac*100, "%\n", "density = ",mkrDensity, "mkr/Mb" ), size = 3, fill = "white")+
       theme_bw()  # Black and white theme
 
     gg_fig14
 
-    ggsave(filename = paste0("chr_",chrID ,"_frac_", frac*100,"_density_fig14_with_cleaning.png"), plot = gg_fig14, path = plots_path, #device = "pdf",
-            width = 20, height = 30, units = "cm", dpi = 600)
+    ggsave(filename = paste0("chr_",chrID ,"_frac_", frac*100,"_density_fig14_with_cleaning_MBE.png"), plot = gg_fig14, path = plots_path, #device = "pdf",
+            width = 20, height = 30, units = "cm", dpi = 300)
     #---------
 
         fig14_gg_per_fraction_list = rlist::list.append(fig14_gg_per_fraction_list, gg_fig14)
@@ -1081,7 +1395,7 @@ tictoc::toc()
     #     scale_y_continuous(breaks=seq(0,20,1))
     # gg2L
     # ggsave(filename = paste0("chr_2L",  "_SimuResuts.png"), plot = gg2L, path = plots_path,
-    #         width = 3.5, height = 3, units = "in", dpi = 600)
+    #         width = 3.5, height = 3, units = "in", dpi = 300)
 
     fig14_gg_100 = fig14_gg_per_fraction_list[[1]]
     fig14_gg_90 = fig14_gg_per_fraction_list[[2]]
@@ -1121,8 +1435,8 @@ tictoc::toc()
 
    all_in_one_gg_fig14
 
-    ggsave(filename = paste0("all_in_one_fig14_new_with_cleaning.png"), plot = all_in_one_gg_fig14, path = plots_path, #device = "pdf",
-            width = 20, height = 25, units = "cm", dpi = 600)
+    ggsave(filename = paste0("all_in_one_fig14_new_with_cleaning_MBE.png"), plot = all_in_one_gg_fig14, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
 
     # --- other ways to plot all in one --------------------------------------------------
     # ggarrange(ggX,gg2L,gg2R,gg3L, gg3R , nrow = 3, ncol = 2
@@ -1143,11 +1457,20 @@ tictoc::toc()
 @
 
 \subsection{Distribution}
-<<echo=F, results=tex>>=
+<<echo=F>>=
 # DQC 2 - Simulate uniform distribution
 
     distriSimuList = list()
     fig15_gg_distribution_simu_list = list()
+
+
+    ## R5_assign ref cyto boundaries for chr 2L in process ==> here for plot only
+    chrID = "2"
+
+    ref_c = 19.954780
+    ref_t = 0.698949
+    ref_c2 = 6.090470 + 22.87981 # 2R
+    ref_t2 = 20.020890 + 22.87981
 
     print(c("=========== chr in process ====> ", chrID, "==================="))
     refChromosome_2L = get_chromosome_from_inputData(inputData, "2L")
@@ -1180,9 +1503,9 @@ tictoc::toc()
     # regression function = Loess using 2nd degree polynomial
     model = loess(cM ~ MB, span = 0.30, degree = 2)#, na.action = na.exclude
 
-    # case 1 ===== simulation case with centromeric gap ---------------------------------
+    # case 1 ===== simulation case : uniform distribution with centromeric gap ---------------------------------
     case = 1
-    newMB_withGap = seq(0.015, by = 0.2, length.out = (refChromosomeSize+25))
+    newMB_withGap = seq(0.015, by = 0.21, length.out = (refChromosomeSize+24)) #old ver  (refChromosomeSize+25) to remove 25
     newMB_withGap = newMB_withGap[newMB_withGap <= 22 | newMB_withGap >=27]
     print(newMB_withGap)
     regFn_withGap = predict(model, data.frame(newMB_withGap))
@@ -1192,9 +1515,9 @@ tictoc::toc()
     testChromosome = data.frame(mb = newMB_withGap, cm = regFn_withGap)
     distriSimuList = rlist::list.append(distriSimuList, testChromosome)
 
-    # case 2 ===== simulation case without centromeric gap ------------------------------
+    # case 2 ===== simulation case : uniform distribution with no centromeric gap ------------------------------
     case = 2
-    newMB_noGap = seq(0.015, by = 0.2, length.out = refChromosomeSize)
+    newMB_noGap = seq(0.015, by = 0.21, length.out = refChromosomeSize) # 211 markers, starting at 0.015Mb, ending at 44.115Mb
     print(newMB_noGap)
     regFn_noGap = predict(model, data.frame(newMB_noGap))
     # regFn_noGap[regFn_noGap<0] = 0
@@ -1212,7 +1535,7 @@ tictoc::toc()
     hiDen = 0.112 # 50 mkr/mb on region of 5 mb => den = 5/50
     loDen = 0.55 # 20 mkr/mb on region of 10 mb => den = 10/20
 
-    r1 = seq(from = 0.112, by = hiDen, to = 5) # 50mk/mb
+    r1 = seq(from = 0.112, by = hiDen, to = 5) # 50mk/region
     r2 = seq(from = 5.112, by = loDen, to = 16) # 20mk/mb
     r3 = seq(from = 16.112, by = hiDen, to = 21) # 50mk/mb
     r4 = c() # (21, 28) 0mk/mb => centromeric gap
@@ -1222,29 +1545,44 @@ tictoc::toc()
 
     newMB_high_withGap = c(r1, r2, r3, r4, r5, r6, r7)
 
-    length(newMB_high_withGap)
-
+    # +++++test to get size 44 starting at 0.015Mb and playing with density ++++++++++++++++
+    # hiDen = 0.112 # 36 mrkr/region on region of 4 mb => den = 4/36
+    # loDen = 0.5 # 22 mrkr/region on region of 11 mb => den = 11/22
+    #
+    # r1 = seq(from = 0.015, by = hiDen, to = 4)  # 36 mrkr/region of 4Mb
+    # r2 = seq(from = 4.015, by = loDen, to = 17) # 26 mrkr/region of 13Mb
+    # r3 = seq(from = 17.015, by = hiDen, to = 21)# 36 mrkr/region of 4Mb
+    # r4 = c()                                    # (21, 28) 0mrkr/region => centromeric gap
+    # r5 = seq(from = 27, by = hiDen, to = 31)    # 36 mrkr/region of 4Mb
+    # r6 = seq(from = 31.015, by = loDen, to = 40)# 18 mrkr/region of 9Mb
+    # r7 = seq(from = 40.015, by = hiDen, to = 44)# 36 mrkr/region of 4Mb
+    #
+    # newMB_high_withGap = c(r1, r2, r3, r4, r5, r6, r7)
+    # newMB_high_withGap
+    # length(newMB_high_withGap)
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     regFn_high_withGap = predict(model, data.frame(newMB_high_withGap))
     # regFn_high_withGap[regFn_high_withGap<0] = 0
+    plot(newMB_high_withGap, regFn_high_withGap)
 
     testChromosome = data.frame(mb = newMB_high_withGap, cm = regFn_high_withGap)
     distriSimuList = rlist::list.append(distriSimuList, testChromosome)
 
-    # case 4 ===== simulation non-uniform case WITHOUT centromeric gap and WITH high density on HCB borders
+    # case 4 ===== simulation non-uniform case WITHOUT centromeric gap and WITH high density on HCB borders--
     case = 4
 
     # the 2 following values identify the step used in seq()
     # according to the wanted density
-    hiDen = 0.125 #  40mkr/mb on region of 5 mb => den =5/40
+    hiDen = 0.14 #  40mkr/mb on region of 5 mb => den =5/40
     loDen = 0.5 #  20mkr/mb on region of 10 mb => den =10/20
 
-    r1 = seq(from = 0, by = hiDen, to = 5)
-    r2 = seq(from = 5.125, by = loDen+0.1, to = 16)
-    r3 = seq(from = 16.125, by = hiDen, to = 21)
-    r4 = seq(from = 21.1, by = hiDen+0.1, to = 28) # NO centromeric gap
+    r1 = seq(from = 0.015, by = hiDen, to = 5)
+    r2 = seq(from = 5.015, by = loDen, to = 16)
+    r3 = seq(from = 16.015, by = hiDen, to = 21)
+    r4 = seq(from = 21.015, by = hiDen, to = 27.9) # NO centromeric gap
     r5 = seq(from = 27.9, by = hiDen, to = 32.9)
     r6 = seq(from = 33, by = loDen, to = 42.5)
-    r7 = seq(from = 42.8, by = hiDen, to = 45.115)
+    r7 = seq(from = 42.55, by = hiDen, to = 44)
 
     newMB_high_noGap = c(r1, r2, r3, r4, r5, r6, r7)
 
@@ -1313,15 +1651,23 @@ tictoc::toc()
     annotationDistr = c("uniform", "uniform", "high density", "high density", "low density", "low density")
     annotationGap = c("with gap", "no gap", "with gap", "no gap", "with gap", "no gap")
 
+
     for (i in c(1:length(distriSimuList))) {
 
         testChromosome = distriSimuList[[i]]
         sizechr2 = testChromosome$mb[nrow(testChromosome)]
+
+        # cleaning step----------------------------------------------------------------
+        # testChromosome = clean_chromosome_data(testChromosome, genomeName = "Dmel_R5", chrID)
+        # print(c("refChromosome after cleaning --> size = ", refChromosomeSize))
+        #
+        # sizechr2 = testChromosome$mb[nrow(testChromosome)]
+
         # run BREC to get new HCB ---------------------------------------------
         # RR_object = estimate_recombination_rates(testChromosome)
         # print("RR done")
 
-        RR_object = estimate_recombination_rates_loess(testChromosome, spanVal = 0.30)
+        RR_object = estimate_recombination_rates_loess(testChromosome, spanVal = 0.3)
         print("RR done")
 
         minRR_object = get_min_RR_value_based_on_polynomial(testChromosome)
@@ -1345,6 +1691,11 @@ tictoc::toc()
         RR_object = extrapolate_RR_estimates(testChromosome, RR_object, heteroChromatinBoundaries, telomeres_boundaries, chrID, chrType, minRR_object)
         print("extrapolation done")
 
+        # -------------- used for tempo results  => span used found to be 0.3 => retest with 0.15 (tested, ....)
+        # if(i %in% c(5,6)){ #case
+        #   telomeres_boundaries$telo_right = 45
+        # }
+        # ----------------
         # hcb_cl = c(hcb_cl, heteroChromatinBoundaries$heteroBoundLeft)
         # hcb_cr = c(hcb_cr, heteroChromatinBoundaries$heteroBoundRight)
         # hcb_tl = c(hcb_tl, telomeres_boundaries$extrapolPhysPos_left)
@@ -1362,51 +1713,69 @@ tictoc::toc()
         # deca_t = abs(deca_t - t)
 
         # plotting -------------------------------------------------------------------------------------------------
-        gg_fig15 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.3, color="black") +#Genetic markers
+        gg_fig15 <- ggplot(testChromosome, aes(x=mb, y = cm)) + geom_point(size=0.2, color="black") + geom_rug(alpha = 0.7, sides = "b", length = unit(0.05, "npc")) + scale_y_continuous(expand = c(0.1, 0.1)) +    #Genetic markers
 
-        # geom_vline(xintercept = c, linetype="solid", size=1.5, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
-        # geom_vline(xintercept = t, linetype="solid", size=1.5 , color="blue") + #aes(linetype=variable)
+        geom_vline(xintercept = c(ref_c,ref_t), linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
         geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundLeft, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric"
         geom_vline(xintercept = telomeres_boundaries$telo_left, linetype="dashed", size=1 , color="grey40") + #color = "BREC_telomeric")
 
-        # geom_vline(xintercept = c2, linetype="solid", size=1.5, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
-        # geom_vline(xintercept = t2, linetype="solid", size=1.5 , color="blue") + #aes(linetype=variable)
+        geom_vline(xintercept = c(ref_c2,ref_t2), linetype="solid", size=1, color="blue") +  # , color = "Reference"  aes(linetype=variable)+
         geom_vline(xintercept = heteroChromatinBoundaries$heteroBoundRight, linetype="dashed", size=1, color ="red") + # , color= "BREC_centromeric"
         geom_vline(xintercept = telomeres_boundaries$telo_right, linetype="dashed", size=1 , color="grey40") + #color = "BREC_telomeric")
         labs(x = "Physical distance (Mb)", y = "Genetic distance (cM)")
         gg_fig15
 
-        highlight_rect_centro_15 <- data.frame(xmin=heteroChromatinBoundaries$heteroBoundLeft, xmax=heteroChromatinBoundaries$heteroBoundRight, ymin=-Inf, ymax=Inf)
-        gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_centro_15, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
-                  fill="coral1",
-                  alpha=0.3,
-                  inherit.aes = FALSE)
+        # +++ rect BREC results
+        highlight_rect_centro_15 <- data.frame(xmin=heteroChromatinBoundaries$heteroBoundLeft, xmax=heteroChromatinBoundaries$heteroBoundRight, ymin=35, ymax=75)
+        gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_centro_15, aes(xmin=xmin, xmax=xmax, ymin=-Inf, ymax=Inf),
+                  fill="coral1", alpha=0.3, inherit.aes = FALSE)
 
         highlight_rect_telo_15 <- data.frame(xmin=0, xmax=telomeres_boundaries$telo_left, ymin=-Inf, ymax=Inf)
         gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo_15, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
-                  fill="grey40",
-                  alpha=0.3,
-                  inherit.aes = FALSE)
+                  fill="grey40", alpha=0.3, inherit.aes = FALSE)  #darkorchid
         highlight_rect_telo2_15 <- data.frame(xmin=telomeres_boundaries$telo_right, xmax=sizechr2, ymin=-Inf, ymax=Inf)
-        gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo2_15, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
-                  fill="grey40",
-                  alpha=0.3,
-                  inherit.aes = FALSE)
+        gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo2_15, aes(xmin=xmin, xmax=xmax, ymin=-Inf, ymax=Inf),
+                   fill="grey40", alpha=0.3, inherit.aes = FALSE)
+
+        # +++ rect BREC results === version to use with along rect ref ================
+        # highlight_rect_centro_15 <- data.frame(xmin=heteroChromatinBoundaries$heteroBoundLeft, xmax=heteroChromatinBoundaries$heteroBoundRight, ymin=35, ymax=75)
+        # gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_centro_15, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+        #           color = "red", linetype = "dashed",  fill="coral1", alpha=0.5, inherit.aes = FALSE)
+        #
+        # highlight_rect_telo_15 <- data.frame(xmin=0, xmax=telomeres_boundaries$telo_left, ymin=-15, ymax=15)
+        # gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo_15, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+        #           color = "grey40", linetype = "dashed", fill="grey40", alpha=0.5, inherit.aes = FALSE)  #darkorchid
+        # highlight_rect_telo2_15 <- data.frame(xmin=telomeres_boundaries$telo_right, xmax=sizechr2, ymin=95, ymax=125)
+        # gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo2_15, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+        #            color = "grey40", linetype = "dashed", fill="grey40", alpha=0.5, inherit.aes = FALSE)
+        # +++ rect Ref cyto
+        # highlight_rect_centro_15_ref <- data.frame(xmin=ref_c, xmax=ref_c2, ymin=40, ymax=70)
+        # gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_centro_15_ref, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+        #           color = "blue", linetype = "solid", fill="blue", alpha=0.3, inherit.aes = FALSE)
+        #
+        # highlight_rect_telo_15_ref <- data.frame(xmin=0, xmax=ref_t, ymin=-10, ymax=10)
+        # gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo_15_ref, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+        #           color = "blue", linetype = "solid", fill="blue", alpha=0.3, inherit.aes = FALSE)
+        # highlight_rect_telo2_15_ref <- data.frame(xmin=ref_t2, xmax=sizechr2, ymin=100, ymax=120)
+        # gg_fig15 <- gg_fig15 + geom_rect(data=highlight_rect_telo2_15_ref, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+        #            color = "blue", linetype = "solid", fill="blue", alpha=0.3, inherit.aes = FALSE)
+
 
         gg_fig15 <- gg_fig15 + theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold")
-                  # , legend.box.margin = margin(r = 2, l = 1, unit='cm')
-                  ,axis.text.x = element_text(size=14), axis.text.y = element_text(size=14))
+                  , legend.box.margin = margin(r = 2, l = 1, unit='cm')
+                  ,axis.text.x = element_text(size=14), axis.text.y = element_text(size=14))+
             # scale_x_continuous(breaks=seq(0,24,2)) +
             # scale_y_continuous(breaks=seq(0,20,2))
         # ,"\n", deca_c, "\n", deca_t
 
-        gg_fig15 =  gg_fig15 + annotate("text", x = 10, y = 90, label = paste(annotationLabel[i], "\n", annotationGap[i], "\n", annotationDistr[i] ), size = 4)+
-          theme_bw() # balck and white theme
+        annotate("label", x = 10, y = 100, label = paste(annotationLabel[i], "\n", annotationGap[i], "\n", annotationDistr[i] ), size = 4, fill = "white")+
+        scale_fill_manual('Heterochromatin regions', values = c("coral1, grey40, blue"),  guide = guide_legend(override.aes = list(alpha = 1))) +
+        theme_bw() # balck and white theme
 
-        gg_fig15
-
-        ggsave(filename = paste0("chr_2simu_distribution_fig15", chr2simu,".png"), plot = gg_fig15, path = plots_path, #device = "pdf",
-                width = 20, height = 30, units = "cm", dpi = 300)
+        # gg_fig15
+        #
+        # ggsave(filename = paste0("chr_2simu_distribution_fig15_with_cleaning", chr2simu,".png"), plot = gg_fig15, path = plots_path, #device = "pdf",
+        #         width = 20, height = 30, units = "cm", dpi = 300)
         #---------
 
       fig15_gg_distribution_simu_list = rlist::list.append(fig15_gg_distribution_simu_list, gg_fig15)
@@ -1430,13 +1799,13 @@ tictoc::toc()
 
     all_in_one_gg_fig15
 
-    ggsave(filename = paste0("all_in_one_fig15_new.png"), plot = all_in_one_gg_fig15, path = plots_path, #device = "pdf",
-            width = 20, height = 25, units = "cm", dpi = 600)
+    ggsave(filename = paste0("all_in_one_fig15_MBE.png"), plot = all_in_one_gg_fig15, path = plots_path, #device = "pdf",
+            width = 20, height = 25, units = "cm", dpi = 300)
 
-    @
+@
 
 \subsection{DQC - 1Mb-bins local density variations on Dmel R5 arms}
-<<echo=F, results=tex>>=
+<<echo=F>>=
     local_density_List = list()
     fig11_gg_local_density_list = list()
 
@@ -1493,15 +1862,17 @@ tictoc::toc()
             # scale_linetype_manual(values = c(2,1)) +
             # scale_shape_manual(values= c(15)) +
             labs(x = "Physical distance bins (Mb)", y = "Local density (marker/Mb)") +
-            annotate("text", x = 10, y = max(result_local_density$localDensity)-0.3, label = paste0("(", chrID, ")", " mean = ", round(mean(result_local_density$localDensity), 2)), size = 4)
+            annotate("text", x = 6, y = max(result_local_density$localDensity)-0.3, label = chrID, size = 4)+
+            annotate("text", x = 12, y = max(result_local_density$localDensity)-0.3, label = paste0("mean = ", round(mean(result_local_density$localDensity), 2)), size = 4, color="red")+
+              theme_bw()
             # theme(legend.text=element_text(size = 12), legend.title=element_text(size = 14, face = "bold"), legend.box.margin = margin(r = 2, l = 1, unit='cm'),
                   # axis.text.x = element_text(size=14), axis.text.y = element_text(size=14))
-            # scale_x_continuous(breaks=seq(30,100,10)) +
-            # scale_y_continuous(breaks=seq(0,20,2))
-            gg_bins
-
-            ggsave(filename = paste0("chr",chrID , "_localDensity_variation.png"), plot = gg_bins, path = plots_path, #device = "pdf",
-                    width = 3.5, height = 3, units = "cm", dpi = 300)
+            # scale_x_continuous(limits = c(0, 30), breaks=seq(0,30,2)) +
+            # scale_y_continuous(limits = c(0, 25),breaks=seq(0,25,5))
+            # gg_bins
+            #
+            # ggsave(filename = paste0("chr",chrID , "_localDensity_variation.png"), plot = gg_bins, path = plots_path, #device = "pdf",
+            #         width = 3.5, height = 3, units = "cm", dpi = 300)
 
 # -------------- normalized distribution : removing extreme values -------------------------------------------------------------------------------
             # result_local_density_normalized = dplyr::filter(result_local_density, (localDensity != 0 & localDensity < 10))
@@ -1531,40 +1902,10 @@ tictoc::toc()
 
     all_in_one_gg_bins_fig11
 
-    ggsave(filename = paste0("all_in_one_gg_bins_fig11.png"), plot = all_in_one_gg_bins_fig11, path = plots_path, #device = "pdf",
+    ggsave(filename = paste0("all_in_one_gg_bins_fig11_MBE.png"), plot = all_in_one_gg_bins_fig11, path = plots_path, #device = "pdf",
             width = 20, height = 25, units = "cm", dpi = 300)
 
 @
-
-%============================= Need to SWITCH TO .Rtex for this to display properly formatted code =====
-% 	\begin{center}
-%     	{\small
-%     % 	\begin{align}
-
-<<eval=F, echo=T>>=
-     # Install devtools and shiny from CRAN
-     install.packages("devtools", "shiny")
-     # Load installed libraries
-     library(devtools, shiny)
-
-     # Download and install Brec package from the gitlab repository
-     repo_url <- "https://github.com/ymansour21/brec.git"
-     install_github(url = repo_url)
-     # Load Brec and shiny
-     library(Brec)
-     library(shiny)
-     # Launch Brec graphical interface in your default internet browser
-     runApp("shinyApp/Brec_dashboard.R", launch.browser = TRUE)
-@
-
-<<eval=F, results=hide>>=
-
- @
-
-%         	  %   \end{align}
-%           }%small
-%     \end{center}
-%=========================================================================================================
 
 
 

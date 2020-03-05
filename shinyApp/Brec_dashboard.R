@@ -37,21 +37,21 @@ header <- dashboardHeader(title = "BREC")
 sidebar <- dashboardSidebar(
 
         sidebarMenu(
-            menuItem("Home", tabName = "homeTab", icon = icon("home")),
+            menuItem("Home", tabName = "homeTab", icon = icon("home"), selected = TRUE),
 
             menuItem("Genomic data", tabName = "genomicDataTab", icon = icon("database "),
                      menuSubItem("Download Data files", tabName = "downloadDataTab", icon = icon("file-download ")),
                      menuItem("Database details", tabName = "datasetDetailsTab", icon = icon("database "))),
 
-            menuItem("Run Brec", tabName = "runBrecTab", icon = icon("chart-line"),
-                menuSubItem('Chromatin boundaries', tabName = 'chromatinBoundariesTab', icon = icon('dna'), selected = TRUE),
-                menuSubItem("Recombination rate estimator", tabName = "rrEstimatorTab", icon = icon("calculator "))),
+            menuItem("Run BREC", tabName = "runBrecTab", icon = icon("chart-line"),
+                menuSubItem('Chromatin boundaries', tabName = 'chromatinBoundariesTab', icon = icon('dna')),
+                menuSubItem("Recombination rate estimator", tabName = "rrEstimatorTab", icon = icon("calculator"))),
 
                 # menuSubItem('Use existing datasets', tabName = 'chromatinBoundariesTab', icon = icon('database')),
                 # menuItem('Use import new dataset', tabName = 'importingDatasetTab', icon = icon('table'))),  #file-csv
 
-            menuItem("Download Brec package", tabName = "downloadTab", icon = icon("download ")),
-            menuItem("Install Brec locally", tabName = "installTab", icon = icon("code ")),
+            menuItem("Download BREC package", tabName = "downloadTab", icon = icon("download ")),
+            menuItem("Install BREC locally", tabName = "installTab", icon = icon("code ")),
             menuItem("Help", tabName = "helpTab", icon = icon("question-circle "))
             # ,menuItem("Contact us", tabName = "contactTab", icon = icon("envelope"))
         )
@@ -62,15 +62,21 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
 
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+    ),
+
     tabItems(
         tabItem(tabName = "homeTab",
             fluidPage(
-                box(title = "Welcome to Brec !", status ="success", solidHeader = T, width = 1000,
-                    "Brec is an automated and non-genome-specific solution based on the Marey maps method in order to provide local recombination rate estimates. Then, identify the chromatin boundaries along chromosomes. This functionality allows determinig the location of the peri/centromeric and telomeric regions known to present a reduced recombination rate in most genomes."
-                )
+                box(title = "Welcome to BREC !", status ="success", solidHeader = T, width = 800,
+                    h4(strong("BREC: Identifying genome-wide centromeric and telomeric chromatin Boundaries through RECombination rates")),
+                    h4("Meiotic recombination is a vital biological process playing an essential role in genomes structural and functional dynamics. Genomes exhibit highly various recombination profiles along chromosomes associated with several chromatin states. However, eu-heterochromatin boundaries are not available nor easily provided for non-model organisms, especially for newly sequenced ones. Hence, we miss accurate local recombination rates, necessary to address evolutionary questions. We propose here an automated computational solution, based on the Marey maps method, in order to identify chromatin boundaries along chromosomes through estimating local recombination rates."),br(),
+                    h4("Our method, called",strong("BREC"),"(chromatin ",strong("B"),"oundaries through ",strong("REC"),"ombination rate estimates) is non-genome-specific, running even on non-model genomes as long as genetic and physical maps are available. BREC is based on pure statistics, and is  data-driven, implying that good input data quality remains a strong requirement. Therefore, a data pre-processing module is provided. Experiments show that BREC handles different markers density and distribution issues. BREC’s chromatin boundaries have been validated with cytological equivalents experimentally generated on the fruit fly Drosophila melanogaster genome, for which BREC returns accurate chromatin boundaries. Also, BREC’s recombination rates have been confronted with previously reported estimates. Based on the promising results, we believe our tool has the potential to help bring data science into the service of genome biology and evolution. We introduce BREC within an R-package and a Shiny web-based application yielding a fast, easy-to-use and accessible resource. BREC package is available at https://github.com/ymansour21/BREC."
+                    ))
             ),
             # infoBoxOutput("out1"),
-                box(title = " Brec pipeline ", status ="primary", solidHeader = T, width = 1000, height = 800,
+                box(title = " BREC workflow ", status ="success", solidHeader = T, width = 800, height = 800,
                     imageOutput("pipelineImg")
             )
         ),
@@ -309,7 +315,7 @@ server <- function(input, output, session){
     # sort alphabetically
 
   # Reactive values ***********************************************************************************************************
-    v1 <- reactiveValues(genomeName = "", inputData = NULL, BrecResultsList = NULL, spData = NULL, spIndex = NULL, alertResponse_chrType = NULL )
+    v1 <- reactiveValues(genomeName = "", inputData = NULL, chromosome = NULL, chrID = NULL,  BrecResultsList = NULL, spData = NULL, spIndex = NULL, alertResponse_chrType = NULL )
 
 
   # Render UIs ***********************************************************************************************************
@@ -482,16 +488,118 @@ server <- function(input, output, session){
 # ((((((((((((((((((((((((((  RUN button for BREC one chromosme  ))))))))))))))))))))))))))
 
  runBrec_reactive1 <- observeEvent(input$runButton1, {
-     tic("|||||||||  Chrono : Run Brec for one chromosome")
+     tic("|||||||||  Chrono : Run BREC for one chromosome")
 
      if(input$radioChooseMode == "existing datasets"){
-         chrID =  input$chrIDInput1
+       v1$chrID =  input$chrIDInput1
      }else{
-         chrID =  input$chrIDInput2
+       v1$chrID =  input$chrIDInput2
      }
 
+     chrID = v1$chrID
+     v1$chromosome = get_chromosome_from_inputData(v1$inputData, chrID)
+     chromosome = v1$chromosome
+     goodDataQuality = data_quality_test(chromosome) # assessing data quality as not an option!
+     #--- add a box with the DQC results for the user to know
+
+     if(input$checkBoxDcleaning){
+
+       if(goodDataQuality){ # good data quality 1st iteration
+          # -----------------
+           shinyalert(
+             title = "Great! Your data quality is Good!",
+             text = "Still, would you like to clean 5% of the potential outliers in your data ?",
+             type = "success",
+             showCancelButton = TRUE,
+             cancelButtonText = "No need",
+             confirmButtonCol = 'green',
+             confirmButtonText = "Yes, let's clean",
+             animation = TRUE,
+             callbackR = function(x) {
+               if(x){ # == yes
+                 cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
+                 chromosome = cleanedChromosome_5_perCent
+               }
+              print("Cleaning 5% done > see results on the corresponding.") # -> make box
+            })
+           # -----------------
+       }else{ # low data quality 1st iteration
+         # -----------------
+         shinyalert(
+           title = "Oups! Your data quality is not good enough!",
+           text = "A data cleaning step is recommanded! Whould you like to remove the potential outliers in your data ?
+           \n When the cleaning step is over, the data quality of your cleaned chromosome will be assessed again.",
+           type = "error",
+           showCancelButton = TRUE,
+           cancelButtonText = "No need",
+           confirmButtonCol = 'green',
+           confirmButtonText = "Yes, let's clean",
+           animation = TRUE,
+           callbackR = function(x){
+             if(x){ # == yes
+               cleanedChromosome = clean_chromosome_data(chromosome, genomeName, chrID)
+               chromosome = cleanedChromosome
+               goodDataQuality = data_quality_test(chromosome)
+               if(goodDataQuality){  # good data quality 2nd iteration
+                 shinyalert(
+                   title = "Great! Your data quality is Good now!",
+                   type = "success",
+                   confirmButtonCol = 'green',
+                   confirmButtonText = "OK, go on to run BREC",
+                   animation = TRUE
+                 )
+               }else{  # low data quality 2nd iteration
+                 shinyalert(
+                   title = "Oups! Your data quality is still not good enough!",
+                   text = "Another data cleaning step is recommanded! Would you like to clean 5% of the potential remaining outliers in your data ?
+             \n When the cleaning step is over, the data quality of your cleaned chromosome will be assessed again.",
+                   type = "error",
+                   showCancelButton = TRUE,
+                   cancelButtonText = "No need",
+                   confirmButtonCol = 'green',
+                   confirmButtonText = "Yes, let's clean again",
+                   animation = TRUE,
+                   callbackR = function(x) {
+                     if(x){ # == yes
+                       cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
+                       chromosome = cleanedChromosome_5_perCent
+                       goodDataQuality = data_quality_test(chromosome)
+                       if(goodDataQuality){
+                         shinyalert(
+                           title = "Great! Your data quality is Good now!",
+                           type = "success",
+                           confirmButtonCol = 'green',
+                           confirmButtonText = "OK, go on to run BREC",
+                           animation = TRUE
+                         )
+                       }else{
+                         shinyalert(
+                           title = "Oh no! Your data quality is still not good enough!",
+                           text = "Sorry, BREC behaviour and results are no longer garanteed. But you could still try :)",
+                           type = "warning",
+                           confirmButtonCol = 'green',
+                           confirmButtonText = "OK, go on to run BREC anyway",
+                           animation = TRUE
+                         )
+                       }
+                     }
+                     print("Cleaning 5% done > see results on the corresponding.") # -> make box
+                  })
+               }
+             }
+           })
+         # -----------------
+         # if(!goodDataQuality){
+         #   using_slidingWindowApproach_for_HCB = FALSE
+         # }
+       }
+     }# else{} # if the checkbox is not checked, don't do anything for now! Later, maybe add a confirmation popup?
+
+     v1$chromosome = chromosome
      print("calling Brec_chromosome")
-     BREC_chromosome_results_list = Brec_chromosome(genomeName = v1$genomeName, inputData =  v1$inputData, inputChrID = chrID, span = input$span)# bins = input$binsValueInput #input$chrID_existingInput
+     BREC_chromosome_results_list = Brec_chromosome(genomeName = v1$genomeName, chromosome =  v1$chromosome, inputChrID = v1$chrID, span = input$span)# bins = input$binsValueInput #input$chrID_existingInput
+
+     # BREC_chromosome_results_list = Brec_chromosome(genomeName = v1$genomeName, inputData =  v1$inputData, inputChrID = chrID, span = input$span)# bins = input$binsValueInput #input$chrID_existingInput
 
      auto_chrType_object = BREC_chromosome_results_list$chrType_object
      if(auto_chrType_object$chr_type == 2){ # in case the auto process for chrType returned "Don't know"
@@ -530,7 +638,7 @@ server <- function(input, output, session){
                user_chrType_object = data.frame(chr_type = v1$alertResponse_chrType, chr_sub_type = v1$alertResponse_chr_sub_type)
                print("calling Brec_chromosome_part_2 -- from inside shinyalert")
                v1$BrecResultsList = Brec_chromosome_part_2(BREC_chromosome_results_list, user_chrType_object)
-               print(v1$BrecResultsList[[1]])    ## this displays plot in Rstudio so I can expand it in the navigator
+               # print(v1$BrecResultsList[[1]])    ## this displays plot in Rstudio so I can expand it in the navigator
 
                output$rrplot1 <- renderPlotly({
                    v1$BrecResultsList[[1]]
@@ -577,7 +685,7 @@ server <- function(input, output, session){
        }else{ # in case the user  is not asked to precise chrType
            print("calling Brec_chromosome_part_2 -- from outside shinyalert")
            v1$BrecResultsList = Brec_chromosome_part_2(BREC_chromosome_results_list, auto_chrType_object)
-           print(v1$BrecResultsList[[1]])    ## this displays plot in Rstudio so I can expand it in the navigator
+           # print(v1$BrecResultsList[[1]])    ## this displays plot in Rstudio so I can expand it in the navigator
 
            output$rrplot1 <- renderPlotly({
              v1$BrecResultsList[[1]]
@@ -720,7 +828,7 @@ server <- function(input, output, session){
         outputArgs = return(list(
                     src = filename,
                     contentType = "image/jpg", #"image/svg+xml"
-                    alt = "Brec workflow"
+                    alt = "BRECworkflow"
         ))
         }, deleteFile = FALSE
     )

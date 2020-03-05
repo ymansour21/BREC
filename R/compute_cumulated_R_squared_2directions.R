@@ -30,10 +30,10 @@ compute_cumulated_R_squared_2directions <- function(chromosome){ # it's not the 
             # R2Vect_dir1 = c(R2Vect_dir1,localPolynomial_dir1$r.squared)
 
             localPolynomial_dir1 = rsq(glm(localCM_dir1 ~ poly(localMB_dir1, 3, raw = T)))
-            R2Vect_dir1 = c(R2Vect_dir1,localPolynomial_dir1)
+            # R2Vect_dir1 = c(R2Vect_dir1, localPolynomial_dir1)
 
-            if(!is.na(localPolynomial_dir1)){
-                R2Vect_dir2 = c(R2Vect_dir1, localPolynomial_dir1)
+            if(!is.na(localPolynomial_dir1) & !is.infinite(localPolynomial_dir1)){
+                R2Vect_dir1 = c(R2Vect_dir1, localPolynomial_dir1)
             }else{
                 localPolynomial_dir1 = 0.99
                 R2Vect_dir1 = c(R2Vect_dir1, localPolynomial_dir1)
@@ -59,8 +59,9 @@ compute_cumulated_R_squared_2directions <- function(chromosome){ # it's not the 
         # }
 
         if ((chrData$chrCm[j]!= 0) & (length(localMB_dir2) > 4)){
-            localPolynomial_dir2 = rsq(glm(localCM_dir2 ~ poly(localMB_dir2, 3, raw = T)))
-            if(!is.na(localPolynomial_dir2)){
+                localPolynomial_dir2 = rsq(glm(localCM_dir2 ~ poly(localMB_dir2, 3, raw = T)))
+
+            if(!is.na(localPolynomial_dir2) & !is.infinite(localPolynomial_dir2)){
                 R2Vect_dir2 = c(localPolynomial_dir2, R2Vect_dir2)
             }else{
                 localPolynomial_dir2 = 0.99
@@ -77,6 +78,8 @@ compute_cumulated_R_squared_2directions <- function(chromosome){ # it's not the 
         }
     }
 
+    print(R2Vect_dir1)
+    print(R2Vect_dir2)
     R2DataFrame2D = data.frame(R2Vect_dir1, R2Vect_dir2)
 
     return(R2DataFrame2D)

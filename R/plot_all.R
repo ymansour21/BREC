@@ -35,6 +35,9 @@ plot_all <- function(chromosome, RR_object, genomeName, chrID, R2DataFrame2D, he
   last_marker_pos = chromosome$mb[nrow(chromosome)] # needed for Highlighting HCB on pthe plot
   first_marker_pos = chromosome$mb[1]
 
+  rect_y1 = max(RR_object$regDr)
+  rect_y0 = min(RR_object$regDr)
+
 
   if(chrType == 1){   #whole chromosome : works on metacentric chromosomes =================================================================================
 
@@ -253,15 +256,15 @@ plot_all <- function(chromosome, RR_object, genomeName, chrID, R2DataFrame2D, he
                  list(type = "rect",  name = "Centromeric region",
                       fillcolor = "brown", line = list(color = "brown"), opacity = 0.3,
                       x0 = x0_meta_centro, x1 = x1_meta_centro, xref = "x",
-                      y0 = -Inf, y1 = Inf, yref = "y8"),
+                      y0 = rect_y0, y1 = rect_y1, yref = "y3"),
                  list(type = "rect",  name = "Telomeric region",
                       fillcolor = "grey", line = list(color = "grey"), opacity = 0.3,
                       x0 = x0_left_telo, x1 = x1_left_telo, xref = "x",
-                      y0 = -Inf, y1 = Inf, yref = "y8"),
+                      y0 = rect_y0, y1 = rect_y1, yref = "y3"),
                  list(type = "rect",  name = "Teloomeric region",
                       fillcolor = "grey", line = list(color = "grey"), opacity = 0.3,
                       x0 = x0_right_telo, x1 = x1_right_telo, xref = "x",
-                      y0 = -Inf, y1 = Inf, yref = "y8")
+                      y0 = rect_y0, y1 = rect_y1, yref = "y3")
                )
 
         )
@@ -443,11 +446,11 @@ plot_all <- function(chromosome, RR_object, genomeName, chrID, R2DataFrame2D, he
                        list(type = "rect", name = "Centromeric region",
                             fillcolor = "brown", line = list(color = "brown"), opacity = 0.3,
                             x0 = x0_arm_centro, x1 = x1_arm_centro, xref = "x",
-                            y0 = -Inf, y1 = Inf, yref = "y8"),
+                            y0 = rect_y0, y1 = rect_y1, yref = "y3"),
                        list(type = "rect", name = "Telomeric region",
                             fillcolor = "grey", line = list(color = "grey"), opacity = 0.3,
                             x0 = x0_arm_telo, x1 = x1_arm_telo, xref = "x",
-                            y0 = -Inf, y1 = Inf, yref = "y8")
+                            y0 = rect_y0, y1 = rect_y1, yref = "y3")
                    )
           )
 

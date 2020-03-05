@@ -19,13 +19,11 @@ data_density_test <- function(testChromosome) {
     testChromosomeSize = nrow(testChromosome)
     testChromosome_density = testChromosomeSize / testChromosome$mb[testChromosomeSize]
 
-    cat("testChromosome_density = " , testChromosome_density)
-
-    if (nrow(testChromosome) >= minDensity){
+    if (testChromosome_density >= minDensity){
         goodDataDensity = TRUE
-        print(c("OK! Enough data points ==> density = ", testChromosome_density, "minDensity = ,", minDensity))
+        print(c("OK! Enough data points ==> density = ", testChromosome_density, "minDensity = ", minDensity))
     }else{
-        print(c("Oups! Not enough data points ==> density = ", testChromosome_density, "minDensity = ,", minDensity))
+        print(c("Oups! Not enough data points ==> density = ", testChromosome_density, "minDensity = ", minDensity))
     }
 
     return(goodDataDensity) # boolean
