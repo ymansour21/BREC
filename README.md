@@ -1,6 +1,6 @@
 ## BREC
 
-BREC is an automated, bioinformatic and non-genome-specific solution based on the Marey maps method in order to provide local recombination rate estimates. Then, identify the chromatin boundaries along chromosomes. This functionality allows determinig the location of the peri/centromeric and telomeric regions known to present a reduced recombination rate in most genomes.
+BREC is an automated, computational and non-genome-specific solution based on the Marey maps method in order to identify eu-heterochromatin boundaries along chromosomes, and provide local recombination rate estimates. This approach allows to determin the location of the centromeric and telomeric regions known to present a reduced recombination rate in most eucaryotic genomes.
 
 ## Download and install BREC package from within an R enviroment
 
