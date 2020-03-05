@@ -19,4 +19,4 @@ library(shiny)
 runApp("shinyApp/Brec_dashboard.R", launch.browser = TRUE)
 ```
 
-
+Further details and examples will be avalable soon :)
