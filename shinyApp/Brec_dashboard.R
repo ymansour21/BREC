@@ -41,18 +41,19 @@ sidebar <- dashboardSidebar(
 
             menuItem("Genomic data", tabName = "genomicDataTab", icon = icon("database "),
                      menuSubItem("Download Data files", tabName = "downloadDataTab", icon = icon("file-download ")),
-                     menuItem("Database details", tabName = "datasetDetailsTab", icon = icon("database "))),
+                     menuItem("Dataset details", tabName = "datasetDetailsTab", icon = icon("database "))),
 
             menuItem("Run BREC", tabName = "runBrecTab", icon = icon("chart-line"),
-                menuSubItem('Chromatin boundaries', tabName = 'chromatinBoundariesTab', icon = icon('dna')),
-                menuSubItem("Recombination rate estimator", tabName = "rrEstimatorTab", icon = icon("calculator"))),
+                menuSubItem('Heterochromatin boundaries', tabName = 'chromatinBoundariesTab', icon = icon('dna'))
+                # ,menuSubItem("Recombination rate estimator", tabName = "rrEstimatorTab", icon = icon("calculator"))
+                )
 
-                # menuSubItem('Use existing datasets', tabName = 'chromatinBoundariesTab', icon = icon('database')),
+                # ,menuSubItem('Use existing datasets', tabName = 'chromatinBoundariesTab', icon = icon('database')),
                 # menuItem('Use import new dataset', tabName = 'importingDatasetTab', icon = icon('table'))),  #file-csv
 
-            menuItem("Download BREC package", tabName = "downloadTab", icon = icon("download ")),
-            menuItem("Install BREC locally", tabName = "installTab", icon = icon("code ")),
-            menuItem("Help", tabName = "helpTab", icon = icon("question-circle "))
+            # menuItem("Download BREC package", tabName = "downloadTab", icon = icon("download ")),
+            # menuItem("Install BREC locally", tabName = "installTab", icon = icon("code ")),
+            # menuItem("Help", tabName = "helpTab", icon = icon("question-circle "))
             # ,menuItem("Contact us", tabName = "contactTab", icon = icon("envelope"))
         )
 )
@@ -69,16 +70,29 @@ body <- dashboardBody(
     tabItems(
         tabItem(tabName = "homeTab",
             fluidPage(
-                box(title = "Welcome to BREC !", status ="success", solidHeader = T, width = 800,
-                    h4(strong("BREC: Identifying genome-wide centromeric and telomeric chromatin Boundaries through RECombination rates")),
-                    h4("Meiotic recombination is a vital biological process playing an essential role in genomes structural and functional dynamics. Genomes exhibit highly various recombination profiles along chromosomes associated with several chromatin states. However, eu-heterochromatin boundaries are not available nor easily provided for non-model organisms, especially for newly sequenced ones. Hence, we miss accurate local recombination rates, necessary to address evolutionary questions. We propose here an automated computational solution, based on the Marey maps method, in order to identify chromatin boundaries along chromosomes through estimating local recombination rates."),br(),
-                    h4("Our method, called",strong("BREC"),"(chromatin ",strong("B"),"oundaries through ",strong("REC"),"ombination rate estimates) is non-genome-specific, running even on non-model genomes as long as genetic and physical maps are available. BREC is based on pure statistics, and is  data-driven, implying that good input data quality remains a strong requirement. Therefore, a data pre-processing module is provided. Experiments show that BREC handles different markers density and distribution issues. BREC’s chromatin boundaries have been validated with cytological equivalents experimentally generated on the fruit fly Drosophila melanogaster genome, for which BREC returns accurate chromatin boundaries. Also, BREC’s recombination rates have been confronted with previously reported estimates. Based on the promising results, we believe our tool has the potential to help bring data science into the service of genome biology and evolution. We introduce BREC within an R-package and a Shiny web-based application yielding a fast, easy-to-use and accessible resource. BREC package is available at https://github.com/ymansour21/BREC."
-                    ))
+                box(title = strong("Welcome to BREC !"), status ="success", solidHeader = T, width = 800
+                    ,h4(strong("An R package/Shiny app for automatically identifying heterochromatin boundaries and estimating local recombination rates along chromosomes")), br()
+                )
+                ,box(title = strong("BREC workflow"), status ="success", solidHeader = T, width = 800, height = 800,
+                    imageOutput("pipelineImg1")
+                )
+                ,box(status ="success", solidHeader = F, width = 800, height = 800,
+                     imageOutput("pipelineImg2")
+                )
             ),
-            # infoBoxOutput("out1"),
-                box(title = " BREC workflow ", status ="success", solidHeader = T, width = 800, height = 800,
-                    imageOutput("pipelineImg")
-            )
+  # infoBoxOutput("out1"),
+                box(title = strong("The research project behind BREC"), status ="success", solidHeader = T, width = 800, height = 800,
+                    # h4(strong("BREC")), br(),
+                    h4(strong("Motivation"), br(), "Meiotic recombination is a vital biological process playing an essential role in genomes structural and functional dynamics. Genomes exhibit highly various recombination profiles along chromosomes associated with several chromatin states. However, eu-heterochromatin boundaries are not available nor easily provided for non-model organisms, especially for newly sequenced ones. Hence, we miss accurate local recombination rates, necessary to address evolutionary questions."), br(),
+                    h4(strong("Results"), br(), "We propose an automated computational tool, based on the Marey maps method, allowing to identify heterochromatin boundaries along chromosomes and estimating local recombination rates. Our method, called", strong("BREC"),"(heterochromatin ",strong("B"),"oundaries and ",strong("REC"),"ombination rate estimates) is non-genome-specific, running even on non-model genomes as long as genetic and physical maps are available. BREC is based on pure statistics and is data-driven, implying that good input data quality remains a strong requirement. Therefore, a data pre-processing module (data quality control and cleaning) is provided. Experiments show that BREC handles different markers density and distribution issues. BREC′s heterochromatin boundaries have been validated with cytological equivalents experimentally generated on the fruit fly Drosophila melanogaster genome, for which BREC returns congruent corresponding values. Also, BREC's recombination rates have been compared with previously reported estimates. Based on the promising results, we believe our tool has the potential to help bring data science into the service of genome biology and evolution. We introduce BREC within an R-package and a Shiny web-based user-friendly application yielding a fast, easy-to-use, and broadly accessible resource."), br()
+                    ,h3(strong("Preprint on bioRxiv | Bioinformatics"))
+                    ,a(href = "https://www.biorxiv.org/content/10.1101/2020.06.29.178095v3", h4(strong("https://www.biorxiv.org/content/10.1101/2020.06.29.178095v3")))
+                    ,h4("Manuscript first posted online: June 30th, 2020")
+                    ,h4("Manuscript last updated: July 27th, 2020")
+                    ,h3(strong("Peer-review at PLOS Computational Biology | Methods"))
+                    ,h4("Manuscript first submission: July 27th, 2020")
+                )
+
         ),
 
         tabItem(tabName = "chromatinBoundariesTab", #------------------------------------------------------------------------------------------
@@ -93,7 +107,7 @@ body <- dashboardBody(
                             # checkboxInput(inputId = "checkBoxDCQ", label = "Apply data quality control", value = FALSE),
                             ),
 
-                        box(title = "Chromatin boundaries",status ="primary", solidHeader = T,
+                        box(title = "Heterochromatin boundaries",status ="primary", solidHeader = T,
                             # withSpinner(
                             dataTableOutput("hcb1")
                             # )
@@ -122,34 +136,34 @@ body <- dashboardBody(
 
                     # ,hide(id= "Summarizing plot")
                     )
-                    ,
-                    tabPanel(title = "Whole genome", br(),br(),#-------------------------
-                         fluidRow(
-                             box(title = "Input parameters ",  status ="primary", solidHeader = T,
-                                 prettyRadioButtons(inputId = "radioChooseModeW", label = "Choose data source ", choices = c("existing datasets", "import new dataset"), selected = "existing datasets"),
-                                 uiOutput("contentsW")),
-
-                             box(title = "General statistics", status ="primary", solidHeader = T,
-                                 # withSpinner(
-                                     dataTableOutput("generalStatsW"),
-                                     # ),
-                                 downloadButton('downloadStatsW', 'Download'))
-                             # , hide(id="General statistics")
-                             # )
-                         ),
-
-                         box(title = "Chromatin boundaries for all chromosomes",status ="primary", solidHeader = T, width = NULL,
-                             # withSpinner(
-                                 dataTableOutput("hcbW"),
-                             # ) ,
-                         downloadButton('downloadResHCBW', 'Download')),
-
-                         box(title = "Recombination rates for whole genome",status ="primary", solidHeader = T, width = NULL,
-                             # withSpinner(
-                             dataTableOutput("rrW"),
-                             # )  ,
-                             downloadButton('downloadResRRW', 'Download'))
-                    )
+                    # ,
+                    # tabPanel(title = "Whole genome", br(),br(),#-------------------------
+                    #      fluidRow(
+                    #          box(title = "Input parameters ",  status ="primary", solidHeader = T,
+                    #              prettyRadioButtons(inputId = "radioChooseModeW", label = "Choose data source ", choices = c("existing datasets", "import new dataset"), selected = "existing datasets"),
+                    #              uiOutput("contentsW")),
+                    #
+                    #          box(title = "General statistics", status ="primary", solidHeader = T,
+                    #              # withSpinner(
+                    #                  dataTableOutput("generalStatsW"),
+                    #                  # ),
+                    #              downloadButton('downloadStatsW', 'Download'))
+                    #          # , hide(id="General statistics")
+                    #          # )
+                    #      ),
+                    #
+                    #      box(title = "Heterochromatin boundaries for all chromosomes",status ="primary", solidHeader = T, width = NULL,
+                    #          # withSpinner(
+                    #              dataTableOutput("hcbW"),
+                    #          # ) ,
+                    #      downloadButton('downloadResHCBW', 'Download')),
+                    #
+                    #      box(title = "Recombination rates for whole genome",status ="primary", solidHeader = T, width = NULL,
+                    #          # withSpinner(
+                    #          dataTableOutput("rrW"),
+                    #          # )  ,
+                    #          downloadButton('downloadResRRW', 'Download'))
+                    # )
                 )
             )
         )
@@ -382,18 +396,18 @@ server <- function(input, output, session){
 
 
         inputData = v1$spData
-        print(inputData)
+        # print(inputData)
          if(input$physMapUnit == "bp"){
               inputData$mb = inputData$mb/10^6  # convert to Mb without rounding
              # inputData$mb = round((inputData$mb / 10^6), 2)  # convert to Mb
          }
-        print(inputData)
+        # print(inputData)
          # chrList = get_list_of_chromosomes(inputData)
 
 
          # inputData <- read.table(rawDataFile, header = TRUE, sep = separator)
          chrList = get_list_of_chromosomes(inputData)
-         print(chrList)
+         # print(chrList)
     # 0000000000000000000000000000000000000000000000
          # inputData = transform_inputData_to_chromosomes(inputData, chrList)
          # chrList = get_list_of_chromosomes(inputData)
@@ -424,7 +438,7 @@ server <- function(input, output, session){
          }
 
          chrList = get_list_of_chromosomes(inputData)
-         print(chrList)
+         # print(chrList)
     # 0000000000000000000000000000000000000000000000
          # inputData = transform_inputData_to_chromosomes(inputData, chrList)
          # chrList = get_list_of_chromosomes(inputData)
@@ -488,7 +502,7 @@ server <- function(input, output, session){
 # ((((((((((((((((((((((((((  RUN button for BREC one chromosme  ))))))))))))))))))))))))))
 
  runBrec_reactive1 <- observeEvent(input$runButton1, {
-     tic("|||||||||  Chrono : Run BREC for one chromosome")
+     # tic("|||||||||  Chrono : Run BREC for one chromosome")
 
      if(input$radioChooseMode == "existing datasets"){
        v1$chrID =  input$chrIDInput1
@@ -499,24 +513,25 @@ server <- function(input, output, session){
      chrID = v1$chrID
      v1$chromosome = get_chromosome_from_inputData(v1$inputData, chrID)
      chromosome = v1$chromosome
-     goodDataQuality = data_quality_test(chromosome) # assessing data quality as not an option!
+     goodDataQuality = data_quality_test(chromosome) # assessing data quality is not optional!
      #--- add a box with the DQC results for the user to know
 
      if(input$checkBoxDcleaning){
-
+          print("from inside  if(input$checkBoxDcleaning)")
        if(goodDataQuality){ # good data quality 1st iteration
           # -----------------
            shinyalert(
              title = "Great! Your data quality is Good!",
-             text = "Still, would you like to clean 5% of the potential outliers in your data ?",
+             text = "Still, do you want to remove 5% of the potential outliers in your data ?",
              type = "success",
              showCancelButton = TRUE,
              cancelButtonText = "No need",
              confirmButtonCol = 'green',
-             confirmButtonText = "Yes, let's clean",
+             confirmButtonText = "OK, why not!",
              animation = TRUE,
              callbackR = function(x) {
                if(x){ # == yes
+                 print("from isndide yes 5% clean")
                  cleanedChromosome_5_perCent = clean_5_perCent_chromosome_data(chromosome, genomeName, chrID)
                  chromosome = cleanedChromosome_5_perCent
                }
@@ -526,7 +541,7 @@ server <- function(input, output, session){
        }else{ # low data quality 1st iteration
          # -----------------
          shinyalert(
-           title = "Oups! Your data quality is not good enough!",
+           title = "Oops! Your data quality is not good enough!",
            text = "A data cleaning step is recommanded! Whould you like to remove the potential outliers in your data ?
            \n When the cleaning step is over, the data quality of your cleaned chromosome will be assessed again.",
            type = "error",
@@ -550,7 +565,7 @@ server <- function(input, output, session){
                  )
                }else{  # low data quality 2nd iteration
                  shinyalert(
-                   title = "Oups! Your data quality is still not good enough!",
+                   title = "Oops! Your data quality is still not good enough!",
                    text = "Another data cleaning step is recommanded! Would you like to clean 5% of the potential remaining outliers in your data ?
              \n When the cleaning step is over, the data quality of your cleaned chromosome will be assessed again.",
                    type = "error",
@@ -596,7 +611,7 @@ server <- function(input, output, session){
      }# else{} # if the checkbox is not checked, don't do anything for now! Later, maybe add a confirmation popup?
 
      v1$chromosome = chromosome
-     print("calling Brec_chromosome")
+     # print("calling Brec_chromosome")
      BREC_chromosome_results_list = Brec_chromosome(genomeName = v1$genomeName, chromosome =  v1$chromosome, inputChrID = v1$chrID, span = input$span)# bins = input$binsValueInput #input$chrID_existingInput
 
      # BREC_chromosome_results_list = Brec_chromosome(genomeName = v1$genomeName, inputData =  v1$inputData, inputChrID = chrID, span = input$span)# bins = input$binsValueInput #input$chrID_existingInput
@@ -606,7 +621,7 @@ server <- function(input, output, session){
 
          shinyalert(
              title = "Is your chromosome an arm?",
-             text = "Please precise if your chromosome is telocenrtic (arm), othrwise BREC will process it as a metacentric chromosome?",
+             text = "Unfortunately, BREC was not able to automatically decide on the type of this chromosome! \n Could you please confirm if it's telocenrtic (arm)? Otherwise, BREC will process it as metacentric?",
              type = "warning",
              showCancelButton = TRUE,
              cancelButtonText = "No, it's not",
@@ -733,38 +748,38 @@ server <- function(input, output, session){
 
  # ((((((((((((((((((((((((((  RUN button for BREC whole genome  ))))))))))))))))))))))))))
 
- runBrec_reactive1 <- observeEvent(input$runButton1W, {
-
-     tic("|||||||||  Chrono : Run Brec for one chromosome")
-
-     print("calling Brec for whole genome")
-     v1$BrecResultsList = Brec_genome(genomeName = v1$genomeName, inputData =  v1$inputData )# bins = input$binsValueInput #input$chrID_existingInput
-
-     output$rrW <- renderDataTable({  # whole_genome -- #not yet
-         RR_output = v1$BrecResultsList[[2]]
-         datatable(RR_output, options = list(paging = TRUE, searching = FALSE))
-         # RR_file = paste0(getwd(),"/../results/drosophila_r6-Chr2_RRestimates_Brec.txt")
-         # RR_output <- read.table(RR_file, header = TRUE, sep = "\t")
-         # datatable(RR_output, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
-     })
-
-     output$hcbW <- renderDataTable({ # whole_genome -- #not yet
-         HCB_output = v1$BrecResultsList[[3]]
-         datatable(HCB_output[ , c(1,3)], rownames = FALSE , options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
-         # HCB_file = paste0(getwd(),"/../results/DrosophilamelanogasterR6-Chr2_chromatinBoundaries_Brec.txt")
-         # HCB_output <- read.table(HCB_file, header = TRUE, sep = "\t")
-         # DT::datatable(HCB_output, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
-     })
-     output$generalStatsW <- renderDataTable({ # whole_genome -- #not yet
-         gs_output = v1$BrecResultsList[[4]]
-         datatable(gs_output[ , c(2,4)], rownames = FALSE, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
-         # gs_file = paste0(getwd(),"/../results/drosophila_r6-Chr2_HCB_Brec2.txt")
-         # gs_output <- read.table(gs_file, header = TRUE, sep = "\t")
-         # DT::datatable(gs_output, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
-     })
-
-     toc()
- })
+ # runBrec_reactive1 <- observeEvent(input$runButton1W, {
+ #
+ #     tic("|||||||||  Chrono : Run Brec for one chromosome")
+ #
+ #     print("calling Brec for whole genome")
+ #     v1$BrecResultsList = Brec_genome(genomeName = v1$genomeName, inputData =  v1$inputData )# bins = input$binsValueInput #input$chrID_existingInput
+ #
+ #     output$rrW <- renderDataTable({  # whole_genome -- #not yet
+ #         RR_output = v1$BrecResultsList[[2]]
+ #         datatable(RR_output, options = list(paging = TRUE, searching = FALSE))
+ #         # RR_file = paste0(getwd(),"/../results/drosophila_r6-Chr2_RRestimates_Brec.txt")
+ #         # RR_output <- read.table(RR_file, header = TRUE, sep = "\t")
+ #         # datatable(RR_output, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
+ #     })
+ #
+ #     output$hcbW <- renderDataTable({ # whole_genome -- #not yet
+ #         HCB_output = v1$BrecResultsList[[3]]
+ #         datatable(HCB_output[ , c(1,3)], rownames = FALSE , options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
+ #         # HCB_file = paste0(getwd(),"/../results/DrosophilamelanogasterR6-Chr2_chromatinBoundaries_Brec.txt")
+ #         # HCB_output <- read.table(HCB_file, header = TRUE, sep = "\t")
+ #         # DT::datatable(HCB_output, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
+ #     })
+ #     output$generalStatsW <- renderDataTable({ # whole_genome -- #not yet
+ #         gs_output = v1$BrecResultsList[[4]]
+ #         datatable(gs_output[ , c(2,4)], rownames = FALSE, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
+ #         # gs_file = paste0(getwd(),"/../results/drosophila_r6-Chr2_HCB_Brec2.txt")
+ #         # gs_output <- read.table(gs_file, header = TRUE, sep = "\t")
+ #         # DT::datatable(gs_output, options = list(paging = FALSE, searching = FALSE, language = list(info = "")))
+ #     })
+ #
+ #     toc()
+ # })
 
 
 # 5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555
@@ -823,15 +838,25 @@ server <- function(input, output, session){
 # |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 # ((((((((((((((((((((((((((  dipaly home page BREC workflow  ))))))))))))))))))))))))))
-    output$pipelineImg <- renderImage({
-        filename = paste0(getwd(), '/www/pipeline_merge_v3.jpg')
+      output$pipelineImg1 <- renderImage({
+        filename1 = paste0(getwd(), '/www/new_pipeline_p1_v6_for_GUI.jpg')
         outputArgs = return(list(
-                    src = filename,
-                    contentType = "image/jpg", #"image/svg+xml"
-                    alt = "BRECworkflow"
+                    src = filename1,
+                    contentType =  "image/jpg", #"image/svg+xml",
+                    alt = "BREC workflow figure 1"
         ))
         }, deleteFile = FALSE
-    )
+      )
+
+      output$pipelineImg2 <- renderImage({
+        filename2 = paste0(getwd(), '/www/new_pipeline_p2_v6_for_GUI.jpg')
+        outputArgs = return(list(
+            src = filename2,
+            contentType =  "image/jpg", #"image/svg+xml",
+            alt = "BREC workflow figure 2"
+        ))
+        }, deleteFile = FALSE
+      )
 
     output$installRmd <- renderUI({
         HTML(markdownToHTML(knit(paste0(getwd(),'/install.rmd'), quiet = TRUE)))
