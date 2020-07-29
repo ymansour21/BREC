@@ -19,21 +19,21 @@
 extract_CB <- function(chromosome, RR_object, R2DataFrame2D, chrID, chrType, minRR_object){
   # Remember : left corresponds to dirction 1 and right to direction 2
 
-    if(chrType == 1){   #whole chromosome : works on metacentric chromosomes ========================================================
+    if(chrType == 1){   #whole chromosome : works on metacentric chromosomes ===========================================
 
         minRR = minRR_object$minRRpoly # min(RR_vector)
         indexOfMinRR = minRR_object$indexOfMinRRpoly # match(minRR, RR_vector)
 
-        print(c("indexOfMinRR", indexOfMinRR))
+        # print(c("indexOfMinRR", indexOfMinRR))
         # get rn and ln the right and left neighbours of the central point which is the phy-pos of the minimum RR : mb(minRR)
         centralPt = chromosome$mb[indexOfMinRR]
-        print(centralPt)
+        # print(centralPt)
         if(!is.na(chromosome$mb[indexOfMinRR+1])){
             rn = chromosome$mb[indexOfMinRR+1]
         }else{
             rn = centralPt
         }
-        print(rn)
+        # print(rn)
 
         if(indexOfMinRR != 1){
             if(!is.na(chromosome$mb[indexOfMinRR-1])){
@@ -42,20 +42,20 @@ extract_CB <- function(chromosome, RR_object, R2DataFrame2D, chrID, chrType, min
         }else{
             ln = centralPt
         }
-        print(ln)
+        # print(ln)
         ecartRnLn = abs(rn-ln)
-        cat("ecartRnLn", ecartRnLn, sep = " = ")
+        # cat("ecartRnLn", ecartRnLn, sep = " = ")
         # ecartRnLn = max(abs(centralPt-rn), abs(centralPt-ln))
         ecartsPhysVector = c()
         for(k in 2:(nrow(chromosome))){
             ecartsPhysVector = c(ecartsPhysVector, chromosome$mb[k] - chromosome$mb[k-1])
         }
-        print(ecartsPhysVector)
+        # print(ecartsPhysVector)
         b = boxplot.stats(ecartsPhysVector)
         # print(b)
         # boxplot(ecartsPhysVector)
         seuilMaxMoustache = b$stats[5] # in case of boxplot -> b$stats[5, ] because it's a matrix
-        cat("seuilMaxMoustache", seuilMaxMoustache, sep = " = ")
+        # cat("seuilMaxMoustache", seuilMaxMoustache, sep = " = ")
 
         # print("#############################################################")
         # print(paste("number of markers", nrow(chromosome)))

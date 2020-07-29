@@ -25,7 +25,7 @@ extract_telomeres_boundaries <- function(chromosome, R2DataFrame2D, chrID, chrTy
         #___________# needed only for display!!
         telo_right = chromosome$mb[index_minR2_right]
         telo_left = chromosome$mb[index_minR2_left]
-        print(c("telo_left=", telo_left, "telo_right=", telo_right, "index_minR2_left=", index_minR2_left, "index_minR2_right=", index_minR2_right))
+        # print(c("telo_left=", telo_left, "telo_right=", telo_right, "index_minR2_left=", index_minR2_left, "index_minR2_right=", index_minR2_right))
         telomeres_boundaries = data.frame(index_minR2_left, telo_left, index_minR2_right, telo_right)
 
     }else{  #chromosomal arm : works on telocentric chromosomes ===============================================================
@@ -52,7 +52,7 @@ extract_telomeres_boundaries <- function(chromosome, R2DataFrame2D, chrID, chrTy
 
         #___________# needed only for display!!
         telo_arm = chromosome$mb[index_minR2_arm]
-        print(c("telo_arm=", telo_arm, "index_minR2_arm=", index_minR2_arm, "minR2_arm=", minR2_arm ))
+        # print(c("telo_arm=", telo_arm, "index_minR2_arm=", index_minR2_arm, "minR2_arm=", minR2_arm ))
         telomeres_boundaries = data.frame(index_minR2_arm, telo_arm)
     }
 

@@ -66,20 +66,20 @@ compute_cumulated_R_squared_2directions <- function(chromosome){ # it's not the 
             }else{
                 localPolynomial_dir2 = 0.99
                 R2Vect_dir2 = c(localPolynomial_dir2, R2Vect_dir2)
-                print("dir 2 --> 0.99 returned from 1st else -> if(!is.na(localPolynomial_dir2))")
+                # print("dir 2 --> 0.99 returned from 1st else -> if(!is.na(localPolynomial_dir2))")
             }
         }else{
             localPolynomial_dir2 = 0.99
             R2Vect_dir2 = c(localPolynomial_dir2, R2Vect_dir2)
-            print("dir 2 --> 0.99 returned from 2nd else ->  if ((chrData$chrCm[j]!= 0) & (length(localMB_dir2) > 3))")
+            # print("dir 2 --> 0.99 returned from 2nd else ->  if ((chrData$chrCm[j]!= 0) & (length(localMB_dir2) > 3))")
         }
         if(j >= lastElemIndex-5){
             print(data.frame(R2Vect_dir2))
         }
     }
 
-    print(R2Vect_dir1)
-    print(R2Vect_dir2)
+    # print(R2Vect_dir1)
+    # print(R2Vect_dir2)
     R2DataFrame2D = data.frame(R2Vect_dir1, R2Vect_dir2)
 
     return(R2DataFrame2D)

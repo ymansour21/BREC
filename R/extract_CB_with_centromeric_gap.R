@@ -47,7 +47,7 @@ if(chrType == 1){   #whole chromosome : works on metacentric chromosomes =======
           }
         }
         meanGrowthRate1 = mean(growthRates1)
-        print(c("extract_CB_with_centromeric_gap - chrType meta - just before if(meanGrowthRate1 > 0) => meanGrowthRate1 =", meanGrowthRate1))
+        # print(c("extract_CB_with_centromeric_gap - chrType meta - just before if(meanGrowthRate1 > 0) => meanGrowthRate1 =", meanGrowthRate1))
         if(meanGrowthRate1 > 0){ # the window stops here / now
           # IndexOfHeteroBoundLeft = indexOfswStart1  #max of this sw pts
           heteroBoundLeft = chromosome$mb[indexOfswEnd1] # initial value
@@ -91,7 +91,7 @@ if(chrType == 1){   #whole chromosome : works on metacentric chromosomes =======
           }
         }
         meanGrowthRate2 = mean(growthRates2)
-        print(c("extract_CB_with_centromeric_gap - chrType meta - just before if(meanGrowthRate2 > 0) => meanGrowthRate2 =", meanGrowthRate2))
+        # print(c("extract_CB_with_centromeric_gap - chrType meta - just before if(meanGrowthRate2 > 0) => meanGrowthRate2 =", meanGrowthRate2))
         if(meanGrowthRate2 < 0){
           # IndexOfHeteroBoundRight = indexOfswStart2 #max of this sw pts
           heteroBoundRight = chromosome$mb[indexOfswEnd2] # initial value
@@ -145,7 +145,7 @@ if(chrType == 1){   #whole chromosome : works on metacentric chromosomes =======
           }
         }
         meanGrowthRate = mean(growthRates)
-        print(c("extract_CB_with_centromeric_gap - chrType telo - just before if(meanGrowthRate > 0) => meanGrowthRate =", meanGrowthRate))
+        # print(c("extract_CB_with_centromeric_gap - chrType telo - just before if(meanGrowthRate > 0) => meanGrowthRate =", meanGrowthRate))
         if(meanGrowthRate > 0){
           # IndexOfHeteroBound = indexOfswStart  #max of this sw pts
           heteroBoundRight = chromosome$mb[indexOfswEnd]  # initial value
@@ -175,7 +175,7 @@ if(chrType == 1){   #whole chromosome : works on metacentric chromosomes =======
 
   heteroChromatinBoundaries = data.frame( heteroBoundLeft, indexHBleft, heteroBoundRight, indexHBright, swSize)
   heteroChromatinBoundaries_to_print = data.frame( heteroBoundLeft, heteroBoundRight, swSize)
-  cat("\n")
-  print(heteroChromatinBoundaries_to_print)
+  # cat("\n")
+  # print(heteroChromatinBoundaries_to_print)
   return(heteroChromatinBoundaries)
 }

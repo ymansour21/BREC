@@ -82,7 +82,7 @@ get_chromosome_type <- function(chromosome, chrID, minRR_object){
     minRRpoly = minRR_object$minRRpoly
     indexOfMinRRpoly = minRR_object$indexOfMinRRpoly
     physPos_minRRpoly = chromosome$mb[indexOfMinRRpoly]
-    print(data.frame(chrID, physPos_minRRpoly,  minRRpoly, indexOfMinRRpoly))
+    # print(data.frame(chrID, physPos_minRRpoly,  minRRpoly, indexOfMinRRpoly)) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     chrSize = chromosome$mb[nrow(chromosome)]
     pcg_df = data.frame(chrID, pcg40 =0.4*chrSize ,pcg60 =0.6*chrSize)

@@ -55,7 +55,7 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
             # print(k)
         }
         meanGrowthRate1 = mean(growthRates1)
-        print(c("extract_CB_with_no_centromeric_gap - chrType meta - just before if(meanGrowthRate1 > 0) => meanGrowthRate1 =", meanGrowthRate1))
+        # print(c("extract_CB_with_no_centromeric_gap - chrType meta - just before if(meanGrowthRate1 > 0) => meanGrowthRate1 =", meanGrowthRate1))
         # print("meanGrowthRate1")
         # print(meanGrowthRate1)
         if(meanGrowthRate1 > 0){ # the window stops here / now
@@ -94,7 +94,7 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
           }
         }
         meanGrowthRate2 = mean(growthRates2)
-        print(c("extract_CB_with_no_centromeric_gap - chrType meta - just before if(meanGrowthRate2 > 0) => meanGrowthRate2 =", meanGrowthRate2))
+        # print(c("extract_CB_with_no_centromeric_gap - chrType meta - just before if(meanGrowthRate2 > 0) => meanGrowthRate2 =", meanGrowthRate2))
         if(meanGrowthRate2 < 0){
           # IndexOfHeteroBoundRight = indexOfswStart2 #max of this sw pts
           heteroBoundRight = chromosome$mb[indexOfswEnd2]
@@ -107,7 +107,7 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
       }
     }
     indexHBright = indexOfswEnd2
-    print(indexHBright)
+    # print(indexHBright)
 
     heteroChromatinBoundaries = data.frame( heteroBoundLeft, indexHBleft, heteroBoundRight, indexHBright, swSize) ## final result to return
     heteroChromatinBoundaries_to_print = data.frame( heteroBoundLeft, heteroBoundRight, swSize)
@@ -122,7 +122,7 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
     swSize = compute_sliding_window_size(chromosome)
     found = FALSE
     indexOfswEnd = IndexOfHeteroBound
-    print(c("minRR = ", minRR, "indexOfMinRR = ", indexOfMinRR,  "indexOfswEnd = ", indexOfswEnd))
+    # print(c("minRR = ", minRR, "indexOfMinRR = ", indexOfMinRR,  "indexOfswEnd = ", indexOfswEnd))
 
     if(indexOfMinRR == nrow(chromosome)){ # this is a left ahromosomal arm (exp : 2L) => left boundary (red)
         while(!found & indexOfswEnd >= nrow(chromosome)/2){  ## before was & indexOfswEnd>1
@@ -140,7 +140,7 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
                   }
                 }
                 meanGrowthRate = mean(growthRates)
-                print(c("extract_CB_with_no_centromeric_gap -left arm - just before if(meanGrowthRate > 0)", meanGrowthRate))
+                # print(c("extract_CB_with_no_centromeric_gap -left arm - just before if(meanGrowthRate > 0)", meanGrowthRate))
                 if(meanGrowthRate > 0){
                   # IndexOfHeteroBound = indexOfswStart  #max of this sw pts
                   heteroBoundLeft = chromosome$mb[indexOfswEnd]  # initial value
@@ -176,10 +176,10 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
     }else if(indexOfMinRR == 1){ # this is a right chromosomal arm (exp : 2R) => right boundary (purple)
         while(!found & indexOfswEnd <= nrow(chromosome)/2){
             swEnd = swStart+swSize # unit here is Mb .. this value may not belong to chromosome$mb, so we find the closest using the next line
-            print(c("swEnd = swStart+swSize", swEnd, swStart, swSize))
+            # print(c("swEnd = swStart+swSize", swEnd, swStart, swSize))
             indexOfswEnd = which.min(abs(chromosome$mb-swEnd))
             indexOfswStart = which.min(abs(chromosome$mb-swStart)) # we also use this formula because its value will be updated with the value of indexOfswEnd1 which does not necessarly belong to chromosme$mb
-            print(c("indexOfswEnd = ", indexOfswEnd, "indexOfswStart = ", indexOfswStart))
+            # print(c("indexOfswEnd = ", indexOfswEnd, "indexOfswStart = ", indexOfswStart))
             r2 = R2DataFrame2D$R2Vect_dir1[indexOfswStart : indexOfswEnd]
             mb = chromosome$mb[indexOfswStart : indexOfswEnd]
             sw = data.frame(r2, mb)
@@ -191,8 +191,8 @@ extract_CB_with_no_centromeric_gap <- function(chromosome, RR_object, R2DataFram
                     }
                 }
                 meanGrowthRate = mean(growthRates)
-                print("extract_CB_with_no_centromeric_gap -right arm - just before if(meanGrowthRate > 0)")
-                print(meanGrowthRate)
+                # print("extract_CB_with_no_centromeric_gap -right arm - just before if(meanGrowthRate > 0)")
+                # print(meanGrowthRate)
                 if(meanGrowthRate > 0){
                     # IndexOfHeteroBound = indexOfswStart  #max of this sw pts
                     heteroBoundRight = chromosome$mb[indexOfswEnd]  # initial value

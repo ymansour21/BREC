@@ -27,7 +27,7 @@ estimate_recombination_rates_loess <- function(chromosome, spanVal){
     cMminus1 = na.replace(cMminus1, min(cMminus1, na.rm = TRUE))
     regDr <- mapply(function(x1, x2, y1, y2) {round((y2-y1)/(x2-x1 ), 2)}, MBminus1, MBplus1, cMminus1, cMplus1)
 
-    # regDr[regDr < 0] = 0 # set negative values to zero
+    regDr[regDr < 0] = 0 # set negative values to zero
 
     # print(model)
     # print(data.frame(MBminus1, MBplus1, cMminus1, cMplus1, regFn2))

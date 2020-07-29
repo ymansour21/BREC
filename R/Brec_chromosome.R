@@ -42,7 +42,7 @@ Brec_chromosome <- function(genomeName="genome name", chromosome, inputChrID, sp
 
   # chromosome = get_chromosome_from_inputData(inputData, chrID) #--> moved into the gui
   chrID = inputChrID
-  cat("\n**/**/**/**/**", "chrId : " , chrID ," --- length of this chr : ", nrow(chromosome),"**/**/**/**/**")
+  cat("\n**/**/**/**/**", "chrId : " , chrID ," --- number of markers : ", nrow(chromosome),"**/**/**/**/**")
 
   # chromosome = data_quality_control_module(genomeName, chromosome, inputChrID)
 
@@ -81,16 +81,16 @@ Brec_chromosome <- function(genomeName="genome name", chromosome, inputChrID, sp
   #   }
   # # ******************************************************************************************
 
-  cat("\n new chr size : " , nrow(chromosome), "\n")
+  # cat("\n new chr size : " , nrow(chromosome), "\n")
   #**** end of handling data quality issues *************
   spanVal = spanFromGui/100 # default = 0.15
   RR_object = estimate_recombination_rates_loess(chromosome, spanVal)
   # RR_object = estimate_recombination_rates_third_degree_polynomial(chromosome) #== used for plotting for paper
   print(RR_object)
-  print("RR done")
+  # print("RR done")
 
   minRR_object = get_min_RR_value_based_on_polynomial(chromosome)
-  print(" get minRR done !")
+  # print(" get minRR done !")
 
   chrType_object = get_chromosome_type(chromosome,chrID, minRR_object) #, RR_object)
   # chrType = chrType_object$chr_type
