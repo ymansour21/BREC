@@ -1,0 +1,10 @@
+name: shinyapp
+title:
+username:
+account: yasmine2rshapps
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3147024
+bundleId: 3812835
+url: https://yasmine2rshapps.shinyapps.io/shinyapp/
+when: 1604358030.32653
