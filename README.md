@@ -16,7 +16,7 @@ install_github("ymansour21/BREC")
 library(Brec)
 library(shiny) 
 # Launch Brec graphical interface in your default internet browser
-runApp("shinyApp/Brec_dashboard.R", launch.browser = TRUE)
+runBREC()
 ```
 
 Further details and examples will be available soon :)
