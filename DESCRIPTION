@@ -23,7 +23,16 @@ Imports:
         ggplot2,
         htmlwidgets,
         na.tools,
-        reshape2
+        reshape2,
+        shinydashboard,
+        shinyWidgets,
+        shinydashboardPlus,
+        shinyAce,
+        sendmailR,
+        shinycssloaders,
+        rlist,
+        tictoc,
+        shinyalert
 Suggests:
         devtools,
         roxygen2,
